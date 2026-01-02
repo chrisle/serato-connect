@@ -356,11 +356,11 @@ export async function getTrackMetadataFromBuffer(
   let metadata: IAudioMetadata;
 
   try {
-    metadata = await parseBuffer(buffer, {
-      mimeType,
-      skipCovers: true,
-      includeChapters: false,
-    });
+    metadata = await parseBuffer(
+      buffer,
+      { mimeType },
+      { skipCovers: true, includeChapters: false }
+    );
   } catch {
     return null;
   }

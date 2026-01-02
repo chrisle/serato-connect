@@ -11,12 +11,26 @@ import {
   getSeratoHistory,
   getSessionSongs,
   getLatestSessionPath,
-} from './historyParser';
+} from './historyParser.js';
+import {
+  getAllCrates,
+  parseCrate,
+  listCrates,
+  findCratesForTrack as findCratesForTrackParser,
+  getLibraryTracks as getLibraryTracksParser,
+  getTrackByPath as getTrackByPathParser,
+  searchLibrary as searchLibraryParser,
+  getDatabaseStats as getDatabaseStatsParser,
+  type SeratoCrate,
+  type SeratoDatabaseTrack,
+} from './parsers/index.js';
+import { getTrackMetadata as getTrackMetadataReader } from './readers/index.js';
 import type {
   SeratoConnectOptions,
   SeratoHistorySong,
+  SeratoTrackMetadata,
   TypedEmitter,
-} from './types';
+} from './types.js';
 
 const DEFAULT_OPTIONS: Required<Omit<SeratoConnectOptions, 'seratoPath'>> = {
   pollIntervalMs: 2000,
@@ -280,5 +294,112 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
    */
   private hashTrack(track: SeratoHistorySong): string {
     return `${track.artist}|${track.title}|${track.startTime?.getTime() || 0}`;
+  }
+
+  // ============================================================================
+  // Library Access Methods
+  // ============================================================================
+
+  /**
+   * Get Serato metadata from an audio file.
+   *
+   * Reads cue points, loops, beatgrid, colors, and other metadata
+   * that Serato stores in the audio file's tags.
+   *
+   * @param filePath - Path to the audio file
+   * @returns Parsed metadata, or null if not found
+   */
+  async getTrackMetadata(filePath: string): Promise<SeratoTrackMetadata | null> {
+    return getTrackMetadataReader(filePath);
+  }
+
+  /**
+   * Get all crates from the Serato library.
+   *
+   * @returns Array of crate objects with names and track paths
+   */
+  async getCrates(): Promise<SeratoCrate[]> {
+    return getAllCrates(this.options.seratoPath);
+  }
+
+  /**
+   * Get a specific crate by name.
+   *
+   * @param name - Name of the crate
+   * @returns Crate object, or undefined if not found
+   */
+  async getCrate(name: string): Promise<SeratoCrate | undefined> {
+    const crates = await listCrates(this.options.seratoPath);
+    const cratePath = crates.find(p => p.endsWith(`${name}.crate`));
+    if (!cratePath) {
+      return undefined;
+    }
+    return parseCrate(cratePath);
+  }
+
+  /**
+   * Find which crates contain a given track.
+   *
+   * @param trackPath - Path to the track file
+   * @returns Array of crate names
+   */
+  async findCratesForTrack(trackPath: string): Promise<string[]> {
+    return findCratesForTrackParser(this.options.seratoPath, trackPath);
+  }
+
+  /**
+   * Get all tracks from the Serato library database.
+   *
+   * @param options - Query options
+   * @returns Array of track entries
+   */
+  async getLibraryTracks(options?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<SeratoDatabaseTrack[]> {
+    const tracks = await getLibraryTracksParser(this.options.seratoPath);
+    if (!options?.limit && !options?.offset) {
+      return tracks;
+    }
+    const start = options.offset || 0;
+    const end = options.limit ? start + options.limit : tracks.length;
+    return tracks.slice(start, end);
+  }
+
+  /**
+   * Find a track in the library by file path.
+   *
+   * @param filePath - Path to the track file
+   * @returns Track entry, or undefined if not found
+   */
+  async getTrackByPath(filePath: string): Promise<SeratoDatabaseTrack | undefined> {
+    return getTrackByPathParser(this.options.seratoPath, filePath);
+  }
+
+  /**
+   * Search the library for tracks matching a query.
+   *
+   * Searches title, artist, album, and file path.
+   *
+   * @param query - Search query string
+   * @returns Array of matching track entries
+   */
+  async searchLibrary(query: string): Promise<SeratoDatabaseTrack[]> {
+    return searchLibraryParser(this.options.seratoPath, query);
+  }
+
+  /**
+   * Get statistics about the Serato library.
+   *
+   * @returns Library statistics
+   */
+  async getDatabaseStats(): Promise<{
+    totalTracks: number;
+    missingTracks: number;
+    lockedBeatgrids: number;
+    genres: string[];
+    artists: number;
+  }> {
+    return getDatabaseStatsParser(this.options.seratoPath);
   }
 }

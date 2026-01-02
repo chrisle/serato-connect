@@ -64,34 +64,33 @@ export interface SeratoDatabaseTrack {
 }
 
 /**
- * Field name mappings for database tags.
+ * Field name mappings for database tags (for reference).
  * From serato-tags database_v2.py
+ *
+ * Tags and their meanings:
+ * - vrsn: version
+ * - otrk: track container
+ * - ttyp: file type
+ * - pfil: file path
+ * - tsng: song title
+ * - tart: artist
+ * - talb: album
+ * - tgen: genre
+ * - tkey: musical key
+ * - tbpm: BPM
+ * - tlen: track length
+ * - tbit: bitrate
+ * - tsmp: sample rate
+ * - bbgl: beatgrid locked
+ * - bmis: file missing
+ * - uadd: date added (unix timestamp)
+ * - tcom: comment
+ * - tgrp: grouping
+ * - tcmp: composer
+ * - tlbl: label
+ * - ttyr: year
+ * - utme: file time
  */
-const FIELD_NAMES: Record<string, string> = {
-  vrsn: 'version',
-  otrk: 'track',
-  ttyp: 'fileType',
-  pfil: 'filePath',
-  tsng: 'title',
-  tart: 'artist',
-  talb: 'album',
-  tgen: 'genre',
-  tkey: 'key',
-  tbpm: 'bpm',
-  tlen: 'length',
-  tbit: 'bitrate',
-  tsmp: 'sampleRate',
-  bbgl: 'beatgridLocked',
-  bmis: 'missing',
-  tadd: 'dateAdded',
-  uadd: 'dateAddedUnix',
-  tcom: 'comment',
-  tgrp: 'grouping',
-  tcmp: 'composer',
-  tlbl: 'label',
-  ttyr: 'year',
-  utme: 'fileTime',
-};
 
 /**
  * Read a UTF-16 BE encoded string from buffer.

@@ -6,7 +6,7 @@
 import { readFile } from 'fs/promises';
 import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
-import type { SeratoHistorySong, SeratoSession } from './types';
+import type { SeratoHistorySong, SeratoSession } from './types.js';
 
 /**
  * Known chunk tags in Serato binary format
