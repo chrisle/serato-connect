@@ -43,15 +43,20 @@ interface DeckState {
 }
 
 /**
- * Get the default path to the _Serato_ folder based on platform
+ * Get the default path to the _Serato_ folder based on platform.
+ *
+ * Note: Serato DJ Pro only supports macOS and Windows.
  */
 export function getDefaultSeratoPath(): string {
   const platform = process.platform;
-  if (platform === 'darwin' || platform === 'win32') {
+  if (platform === 'darwin') {
     return join(homedir(), 'Music', '_Serato_');
   }
-  // Linux - less common but possible
-  return join(homedir(), 'Music', '_Serato_');
+  if (platform === 'win32') {
+    return join(homedir(), 'Music', '_Serato_');
+  }
+  // Serato DJ Pro does not support Linux
+  throw new Error('Serato DJ Pro is only supported on macOS and Windows');
 }
 
 /**
