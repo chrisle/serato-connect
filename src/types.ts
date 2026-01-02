@@ -108,3 +108,148 @@ export interface SeratoConnectEvents {
 }
 
 export type TypedEmitter = StrictEventEmitter<EventEmitter, SeratoConnectEvents>;
+
+// ============================================================================
+// GEOB Metadata Types
+// ============================================================================
+
+/**
+ * RGB color with optional alpha channel.
+ */
+export interface SeratoColor {
+  r: number;
+  g: number;
+  b: number;
+  a?: number;
+}
+
+/**
+ * A cue point (hot cue) set in Serato.
+ *
+ * Cue points have indices 0-7 for hotcues.
+ */
+export interface SeratoCuePoint {
+  /** Index of the cue point (0-7 for hotcues) */
+  index: number;
+  /** Position in milliseconds */
+  position: number;
+  /** Color of the cue point */
+  color: SeratoColor;
+  /** Optional name (up to 51 characters) */
+  name?: string;
+}
+
+/**
+ * A saved loop set in Serato.
+ *
+ * Loops have indices 0-7 for saved loops.
+ */
+export interface SeratoLoop {
+  /** Index of the loop (0-7 for saved loops) */
+  index: number;
+  /** Start position in milliseconds */
+  startPosition: number;
+  /** End position in milliseconds */
+  endPosition: number;
+  /** Color of the loop (ARGB) */
+  color: SeratoColor;
+  /** Whether the loop is locked */
+  locked: boolean;
+  /** Optional name */
+  name?: string;
+}
+
+/**
+ * A flip recording action (jump or censor).
+ */
+export interface SeratoFlipAction {
+  /** Action type: 'jump' or 'censor' */
+  type: 'jump' | 'censor';
+  /** Source position in seconds */
+  sourcePosition: number;
+  /** Target position in seconds */
+  targetPosition: number;
+  /** Speed factor (only for censor actions) */
+  speedFactor?: number;
+}
+
+/**
+ * A flip recording in Serato.
+ */
+export interface SeratoFlip {
+  /** Index of the flip (0-5) */
+  index: number;
+  /** Whether the flip is enabled */
+  enabled: boolean;
+  /** Name of the flip */
+  name: string;
+  /** Whether the flip loops */
+  loop: boolean;
+  /** Actions in the flip */
+  actions: SeratoFlipAction[];
+}
+
+/**
+ * A beatgrid marker.
+ *
+ * The last marker is always a terminal marker with BPM.
+ * Non-terminal markers have beat count to the next marker.
+ */
+export interface SeratoBeatgridMarker {
+  /** Position in seconds */
+  position: number;
+  /** BPM value (only for terminal marker) */
+  bpm?: number;
+  /** Beat count to the next marker (non-terminal markers) */
+  beatsToNext?: number;
+}
+
+/**
+ * Beatgrid data for a track.
+ */
+export interface SeratoBeatgrid {
+  /** Beatgrid markers */
+  markers: SeratoBeatgridMarker[];
+}
+
+/**
+ * Auto-analyzed tags for a track.
+ */
+export interface SeratoAutotags {
+  /** Analyzed BPM */
+  bpm: number;
+  /** Auto gain value */
+  autoGain: number;
+  /** Gain in dB */
+  gainDb: number;
+}
+
+/**
+ * Complete parsed Markers2 data.
+ */
+export interface SeratoMarkers2 {
+  /** Track color */
+  trackColor?: SeratoColor;
+  /** Whether the beatgrid is locked */
+  bpmLock?: boolean;
+  /** Cue points */
+  cuePoints: SeratoCuePoint[];
+  /** Saved loops */
+  loops: SeratoLoop[];
+  /** Flip recordings */
+  flips: SeratoFlip[];
+}
+
+/**
+ * Complete metadata from all GEOB frames.
+ */
+export interface SeratoTrackMetadata {
+  /** Markers2 data (cues, loops, flips, color) */
+  markers?: SeratoMarkers2;
+  /** Beatgrid data */
+  beatgrid?: SeratoBeatgrid;
+  /** Autotags (analyzed BPM, gain) */
+  autotags?: SeratoAutotags;
+  /** Waveform overview data */
+  overview?: Uint8Array;
+}
