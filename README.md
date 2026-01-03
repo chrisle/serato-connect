@@ -216,6 +216,14 @@ This library's format parsing is based on research and code from:
 - **[Mixxx Wiki](https://github.com/mixxxdj/mixxx/wiki/serato_database_format)** — Database format documentation
 - **[music-metadata](https://github.com/Borewit/music-metadata)** by @Borewit — Audio file tag reading
 
+## Related Packages
+
+- [prolink-connect](https://github.com/chrisle/prolink-connect) — Pioneer Pro DJ Link integration
+- [rekordbox-connect](https://github.com/chrisle/rekordbox-connect) — Rekordbox database integration
+- [stagelinq](https://github.com/chrisle/stagelinq) — Denon StageLinq integration
+
+These libraries power [Now Playing](https://nowplayingapp.com) — a real-time track display app for DJs and streamers.
+
 ## License
 
-See repository license.
+MIT
