@@ -218,7 +218,7 @@ This library's format parsing is based on research and code from:
 
 ## Related Packages
 
-- [prolink-connect](https://github.com/chrisle/prolink-connect) — Pioneer Pro DJ Link integration
+- [alphatheta-connect](https://github.com/chrisle/alphatheta-connect) — Pioneer Pro DJ Link integration
 - [rekordbox-connect](https://github.com/chrisle/rekordbox-connect) — Rekordbox database integration
 - [stagelinq](https://github.com/chrisle/stagelinq) — Denon StageLinq integration
 
