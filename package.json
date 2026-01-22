@@ -1,6 +1,6 @@
 {
   "name": "serato-connect",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Library to read Serato DJ history files and emit change events",
   "license": "MIT",
   "private": false,

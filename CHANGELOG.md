@@ -1,5 +1,19 @@
 # Change log
 
+## v1.0.3
+
+- ci: trigger fresh workflow run
+- ci: trigger fresh workflow run
+- chore: release v1.0.2
+- fix: add contents write permission for git push
+- fix: handle yarn.lock and improve changelog generation
+- ci: auto-version bump and publish on push to main
+- docs: update prolink-connect reference to alphatheta-connect
+- chore: update dependencies for stability
+- docs: add related packages section to README
+- chore: remove GitHub Actions, publish locally via 1Password
+
+
 ## v1.0.2
 
 - fix: add contents write permission for git push
