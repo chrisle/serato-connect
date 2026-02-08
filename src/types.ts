@@ -79,6 +79,8 @@ export type SeratoHistoryPayload = {
   count: number;
   /** The new tracks */
   tracks: SeratoHistorySong[];
+  /** Cursor for incremental reads - index of last processed track in session */
+  lastTrackIndex?: number;
 };
 
 /**

@@ -86,6 +86,8 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
   private lastSessionMtime: number = 0;
   private lastSessionPath: string | null = null;
   private isRunning: boolean = false;
+  /** Cursor for incremental history reads - tracks last processed index per session */
+  private lastHistoryIndex: number = 0;
 
   constructor(options: SeratoConnectOptions = {}) {
     super();
@@ -141,6 +143,9 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
       const songs = await getSessionSongs(this.lastSessionPath);
       this.updateDeckStates(songs);
 
+      // Seed the history cursor so we only emit NEW tracks going forward
+      this.lastHistoryIndex = songs.length;
+
       // Get currently playing track (if any)
       const nowPlaying = this.getNowPlaying();
       if (nowPlaying) {
@@ -166,6 +171,7 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
     this.lastTrackHash = '';
     this.lastSessionMtime = 0;
     this.lastSessionPath = null;
+    this.lastHistoryIndex = 0;
 
     // Reset deck states
     for (let i = 0; i < 4; i++) {
@@ -232,6 +238,12 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
       if (currentSessionPath !== this.lastSessionPath || currentMtime !== this.lastSessionMtime) {
         // Session changed or updated
         const isNewSession = currentSessionPath !== this.lastSessionPath;
+
+        // Reset cursor on new session
+        if (isNewSession) {
+          this.lastHistoryIndex = 0;
+        }
+
         this.lastSessionPath = currentSessionPath;
         this.lastSessionMtime = currentMtime;
 
@@ -249,12 +261,15 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
           }
         }
 
-        // Emit history for new tracks
-        if (songs.length > 0) {
+        // Emit history for only NEW tracks since last poll (incremental)
+        const newTracks = songs.slice(this.lastHistoryIndex);
+        if (newTracks.length > 0) {
+          this.lastHistoryIndex = songs.length;
           this.emit('history', {
             seratoPath: this.options.seratoPath,
-            count: songs.length,
-            tracks: songs.slice(-this.options.historyMaxRows),
+            count: newTracks.length,
+            tracks: newTracks.slice(-this.options.historyMaxRows),
+            lastTrackIndex: this.lastHistoryIndex,
           });
         }
 
