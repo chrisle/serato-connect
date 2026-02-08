@@ -1,5 +1,9 @@
 # Change log
 
+## v1.0.4
+
+- feat: add incremental history tracking with cursor
+
 ## v1.0.3
 
 - ci: trigger fresh workflow run
