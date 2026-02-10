@@ -16,7 +16,19 @@ export {
   SeratoConnect,
   getDefaultSeratoPath,
   detectSeratoInstallation,
+  detectSeratoVersion,
 } from './seratoConnect.js';
+
+// Serato 4 (SQLite) exports
+export {
+  getDefaultSeratoV4LibraryPath,
+  getMasterDatabasePath,
+  hasSeratoV4Database,
+  getSeratoV4Sessions,
+  getLatestSessionSongsV4,
+  getLatestSessionInfoV4,
+  getDatabaseMtime,
+} from './historyParserV4.js';
 
 // Core types
 export type {
@@ -28,6 +40,8 @@ export type {
   SeratoTrackPayload,
   SeratoHistoryPayload,
   SeratoSessionPayload,
+  SeratoDeckChangePayload,
+  SeratoVersion,
   // GEOB metadata types
   SeratoColor,
   SeratoCuePoint,

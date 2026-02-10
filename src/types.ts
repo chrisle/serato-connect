@@ -2,15 +2,22 @@ import EventEmitter from 'node:events';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 
 /**
+ * Serato version detected
+ */
+export type SeratoVersion = 'v3' | 'v4' | 'unknown';
+
+/**
  * Configuration options for SeratoConnect
  */
 export type SeratoConnectOptions = {
-  /** Custom path to the _Serato_ folder. If omitted, uses default location. */
+  /** Custom path to the _Serato_ folder (for v3) or Library folder (for v4). If omitted, uses default location. */
   seratoPath?: string;
   /** How frequently to poll the history files (ms). Default: 2000 */
   pollIntervalMs?: number;
   /** Maximum number of history rows to emit per poll. Default: 100 */
   historyMaxRows?: number;
+  /** Force a specific Serato version. If omitted, auto-detects. */
+  forceVersion?: SeratoVersion;
 };
 
 /**
@@ -35,6 +42,20 @@ export interface SeratoHistorySong {
   playing?: boolean;
   /** Deck number (1-4) */
   deck?: number;
+  /** Album artwork URL (for streaming tracks like Beatport) */
+  artworkUrl?: string;
+  /** Streaming service source (e.g., 'beatport', 'tidal', 'soundcloud') */
+  streamingSource?: string;
+  /** Streaming service track ID */
+  streamingId?: string;
+  /** Album name */
+  album?: string;
+  /** Record label */
+  label?: string;
+  /** Genre */
+  genre?: string;
+  /** Musical key */
+  key?: string;
 }
 
 /**
@@ -92,6 +113,19 @@ export type SeratoSessionPayload = {
 };
 
 /**
+ * Payload for deck change events.
+ * Emitted when a deck's loaded track changes.
+ */
+export type SeratoDeckChangePayload = {
+  /** Deck number (1-4) */
+  deckId: number;
+  /** The track now loaded on this deck, or null if ejected */
+  track: SeratoHistorySong | null;
+  /** The previous track on this deck, or null if was empty */
+  previousTrack: SeratoHistorySong | null;
+};
+
+/**
  * Events emitted by SeratoConnect
  */
 export interface SeratoConnectEvents {
@@ -99,7 +133,9 @@ export interface SeratoConnectEvents {
   ready: (info: SeratoReadyInfo) => void;
   /** Emitted on each poll cycle */
   poll: () => void;
-  /** Emitted when the currently playing track changes */
+  /** Emitted when a deck's loaded track changes (load or eject) */
+  deckChange: (payload: SeratoDeckChangePayload) => void;
+  /** @deprecated Use deckChange instead. Emitted when the currently playing track changes */
   track: (payload: SeratoTrackPayload) => void;
   /** Emitted when new history entries are detected */
   history: (payload: SeratoHistoryPayload) => void;

@@ -7,7 +7,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { SeratoConnect, detectSeratoInstallation } from '../src/seratoConnect.js';
-import type { SeratoHistoryPayload, SeratoHistorySong } from '../src/types.js';
+import type { SeratoHistoryPayload, SeratoHistorySong, SeratoDeckChangePayload } from '../src/types.js';
 import { CHUNK_TAGS } from '../src/historyParser.js';
 
 /**
@@ -379,7 +379,7 @@ describe('SeratoConnect', () => {
       await connect.start();
       const error = await errorPromise;
 
-      expect(error.message).toContain('Serato folder not found');
+      expect(error.message).toContain('No Serato installation found');
 
       connect.stop();
     });
@@ -442,8 +442,349 @@ describe('SeratoConnect', () => {
       const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 100 });
       await connect.start();
 
-      const deckStates = connect.getDeckStates();
+      const deckStates = connect.getAllDeckStates();
       expect(deckStates).toHaveLength(4);
+
+      connect.stop();
+    });
+  });
+
+  describe('pollInterval', () => {
+    it('returns initial poll interval', () => {
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 500 });
+      expect(connect.pollInterval).toBe(500);
+    });
+
+    it('returns default poll interval when not specified', () => {
+      const connect = new SeratoConnect({ seratoPath });
+      expect(connect.pollInterval).toBe(2000); // default
+    });
+
+    it('setPollInterval updates the interval', () => {
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 100 });
+      expect(connect.pollInterval).toBe(100);
+
+      connect.setPollInterval(500);
+      expect(connect.pollInterval).toBe(500);
+    });
+
+    it('setPollInterval takes effect immediately when running', async () => {
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([])
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      let pollCount = 0;
+
+      connect.on('poll', () => {
+        pollCount++;
+      });
+
+      await connect.start();
+
+      // Wait for a few polls at 50ms interval
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      const fastPollCount = pollCount;
+
+      // Change to slower interval
+      connect.setPollInterval(500);
+      pollCount = 0;
+
+      // Wait same duration - should have fewer polls
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      const slowPollCount = pollCount;
+
+      // Fast polling should have more polls than slow
+      expect(fastPollCount).toBeGreaterThan(slowPollCount);
+
+      connect.stop();
+    });
+  });
+
+  describe('deckChange events', () => {
+    it('emits deckChange when track is loaded on a deck', async () => {
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([])
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      const deckChanges: SeratoDeckChangePayload[] = [];
+
+      connect.on('deckChange', (payload) => {
+        deckChanges.push(payload);
+      });
+
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Load a track on deck 1 (has startTime, no playTime = still loaded)
+      const songs = [
+        {
+          title: 'Track 1',
+          artist: 'Artist 1',
+          filePath: '/track1.mp3',
+          deck: 1,
+          startTime: new Date(),
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(songs)
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(deckChanges.length).toBeGreaterThan(0);
+      const deck1Change = deckChanges.find((d) => d.deckId === 1);
+      expect(deck1Change).toBeDefined();
+      expect(deck1Change!.track).not.toBeNull();
+      expect(deck1Change!.track!.title).toBe('Track 1');
+      expect(deck1Change!.previousTrack).toBeNull();
+
+      connect.stop();
+    });
+
+    it('emits deckChange when track is ejected from a deck', async () => {
+      // Start with a track loaded
+      const initialSongs = [
+        {
+          title: 'Track 1',
+          artist: 'Artist 1',
+          filePath: '/track1.mp3',
+          deck: 1,
+          startTime: new Date(Date.now() - 60000),
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(initialSongs)
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      const deckChanges: SeratoDeckChangePayload[] = [];
+
+      connect.on('deckChange', (payload) => {
+        deckChanges.push(payload);
+      });
+
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      // Clear changes from initial load
+      deckChanges.length = 0;
+
+      // Eject the track (add playTime)
+      const ejectedSongs = [
+        {
+          title: 'Track 1',
+          artist: 'Artist 1',
+          filePath: '/track1.mp3',
+          deck: 1,
+          startTime: new Date(Date.now() - 60000),
+          playTime: new Date(),
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(ejectedSongs)
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const ejectEvent = deckChanges.find((d) => d.deckId === 1 && d.track === null);
+      expect(ejectEvent).toBeDefined();
+      expect(ejectEvent!.previousTrack).not.toBeNull();
+      expect(ejectEvent!.previousTrack!.title).toBe('Track 1');
+
+      connect.stop();
+    });
+
+    it('emits deckChange for each deck independently', async () => {
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([])
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      const deckChanges: SeratoDeckChangePayload[] = [];
+
+      connect.on('deckChange', (payload) => {
+        deckChanges.push(payload);
+      });
+
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Load tracks on deck 1 and deck 2
+      const songs = [
+        {
+          title: 'Track A',
+          artist: 'Artist A',
+          filePath: '/trackA.mp3',
+          deck: 1,
+          startTime: new Date(),
+        },
+        {
+          title: 'Track B',
+          artist: 'Artist B',
+          filePath: '/trackB.mp3',
+          deck: 2,
+          startTime: new Date(),
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(songs)
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const deck1Change = deckChanges.find((d) => d.deckId === 1 && d.track?.title === 'Track A');
+      const deck2Change = deckChanges.find((d) => d.deckId === 2 && d.track?.title === 'Track B');
+
+      expect(deck1Change).toBeDefined();
+      expect(deck2Change).toBeDefined();
+
+      connect.stop();
+    });
+
+    it('does not emit deckChange if deck state unchanged', async () => {
+      // Start with a track loaded
+      const songs = [
+        {
+          title: 'Track 1',
+          artist: 'Artist 1',
+          filePath: '/track1.mp3',
+          deck: 1,
+          startTime: new Date(Date.now() - 60000),
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(songs)
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      const deckChanges: SeratoDeckChangePayload[] = [];
+
+      connect.on('deckChange', (payload) => {
+        deckChanges.push(payload);
+      });
+
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      // Should have initial load event
+      const initialCount = deckChanges.length;
+      expect(initialCount).toBe(1);
+
+      // Touch the file without changing content (same tracks)
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(songs)
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // No new events - deck state unchanged
+      expect(deckChanges.length).toBe(initialCount);
+
+      connect.stop();
+    });
+
+    it('getDeckTrack returns track for specific deck', async () => {
+      const songs = [
+        {
+          title: 'Deck 1 Track',
+          artist: 'Artist 1',
+          filePath: '/d1.mp3',
+          deck: 1,
+          startTime: new Date(),
+        },
+        {
+          title: 'Deck 3 Track',
+          artist: 'Artist 3',
+          filePath: '/d3.mp3',
+          deck: 3,
+          startTime: new Date(),
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(songs)
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 100 });
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(connect.getDeckTrack(1)?.title).toBe('Deck 1 Track');
+      expect(connect.getDeckTrack(2)).toBeNull();
+      expect(connect.getDeckTrack(3)?.title).toBe('Deck 3 Track');
+      expect(connect.getDeckTrack(4)).toBeNull();
+      expect(connect.getDeckTrack(0)).toBeNull(); // invalid deck
+      expect(connect.getDeckTrack(5)).toBeNull(); // invalid deck
+
+      connect.stop();
+    });
+  });
+
+  describe('version detection', () => {
+    it('returns v3 version for v3 installations', async () => {
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([])
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 100 });
+      await connect.start();
+
+      expect(connect.version).toBe('v3');
+
+      connect.stop();
+    });
+
+    it('detectSeratoInstallation returns v3 for custom path with History folder', () => {
+      const result = detectSeratoInstallation(seratoPath);
+      expect(result.found).toBe(true);
+      expect(result.hasHistory).toBe(true);
+      expect(result.version).toBe('v3');
+      expect(result.path).toBe(seratoPath);
+    });
+
+    it('detectSeratoInstallation returns unknown for custom path without History', async () => {
+      // Create a temp directory without History folder
+      const tempPath = path.join(os.tmpdir(), 'serato-test-no-history-' + Date.now());
+      await fs.promises.mkdir(tempPath, { recursive: true });
+
+      try {
+        const result = detectSeratoInstallation(tempPath);
+        expect(result.found).toBe(true);
+        expect(result.hasHistory).toBe(false);
+        expect(result.version).toBe('unknown');
+      } finally {
+        await fs.promises.rm(tempPath, { recursive: true, force: true });
+      }
+    });
+
+    it('forceVersion option forces v3 mode', async () => {
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([])
+      );
+
+      // Force v3 mode even if v4 is available
+      const connect = new SeratoConnect({
+        seratoPath,
+        pollIntervalMs: 100,
+        forceVersion: 'v3',
+      });
+
+      await connect.start();
+
+      expect(connect.version).toBe('v3');
 
       connect.stop();
     });
