@@ -82,8 +82,8 @@ export function getDefaultSeratoPath(): string {
 /**
  * Detect which version of Serato is installed.
  * If a custom path is provided, only checks for v3 at that path.
- * Otherwise, checks for v4 first (SQLite database), then v3.
- * Returns 'v4' if SQLite database exists, 'v3' if binary History folder exists, 'unknown' otherwise.
+ * Otherwise, checks for both v4 (SQLite) and v3 (binary History).
+ * When both exist, compares modification times to determine which is actively in use.
  */
 export function detectSeratoVersion(seratoV3Path?: string): SeratoVersion {
   // If custom path provided, only check for v3 at that location
@@ -94,16 +94,26 @@ export function detectSeratoVersion(seratoV3Path?: string): SeratoVersion {
     return 'unknown';
   }
 
-  // No custom path - check for Serato 4 SQLite database first (takes precedence)
-  if (hasSeratoV4Database()) {
-    return 'v4';
+  const hasV4 = hasSeratoV4Database();
+  const v3Path = getDefaultSeratoPath();
+  const hasV3 = existsSync(v3Path) && existsSync(join(v3Path, 'History'));
+
+  // Both exist — compare modification times to pick the actively used one
+  if (hasV4 && hasV3) {
+    const v4Mtime = getDatabaseMtime();
+    const v3HistoryPath = join(v3Path, 'History');
+    const v3Mtime = statSync(v3HistoryPath).mtimeMs;
+
+    debug('detectSeratoVersion: both v3 and v4 found, comparing mtimes', {
+      v3Mtime: new Date(v3Mtime).toISOString(),
+      v4Mtime: new Date(v4Mtime).toISOString(),
+    });
+
+    return v3Mtime > v4Mtime ? 'v3' : 'v4';
   }
 
-  // Check for Serato 3 binary history at default location
-  const v3Path = getDefaultSeratoPath();
-  if (existsSync(v3Path) && existsSync(join(v3Path, 'History'))) {
-    return 'v3';
-  }
+  if (hasV4) return 'v4';
+  if (hasV3) return 'v3';
 
   return 'unknown';
 }
@@ -131,8 +141,10 @@ export function detectSeratoInstallation(customPath?: string): {
     };
   }
 
-  // No custom path - check for Serato 4 SQLite database first
-  if (hasSeratoV4Database()) {
+  // No custom path - use detectSeratoVersion which handles mtime comparison
+  const version = detectSeratoVersion();
+
+  if (version === 'v4') {
     const v4Path = getDefaultSeratoV4LibraryPath();
     return {
       found: true,
@@ -142,7 +154,6 @@ export function detectSeratoInstallation(customPath?: string): {
     };
   }
 
-  // Fall back to Serato 3 binary format at default location
   const seratoPath = getDefaultSeratoPath();
   const found = existsSync(seratoPath);
   const hasHistory = found && existsSync(join(seratoPath, 'History'));
@@ -151,7 +162,7 @@ export function detectSeratoInstallation(customPath?: string): {
     found,
     path: seratoPath,
     hasHistory,
-    version: found && hasHistory ? 'v3' : 'unknown',
+    version,
   };
 }
 
