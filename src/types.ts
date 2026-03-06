@@ -1,5 +1,6 @@
 import EventEmitter from 'node:events';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
+import type { Logger } from './types/logger.js';
 
 /**
  * Serato version detected
@@ -18,6 +19,8 @@ export type SeratoConnectOptions = {
   historyMaxRows?: number;
   /** Force a specific Serato version. If omitted, auto-detects. */
   forceVersion?: SeratoVersion;
+  /** Logger instance. If omitted, logging is disabled. */
+  logger?: Logger;
 };
 
 /**

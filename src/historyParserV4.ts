@@ -8,18 +8,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import type { SeratoHistorySong, SeratoSession } from './types.js';
-
-// Debug tracing - enable with DEBUG_SERATO=1 environment variable
-const DEBUG = process.env.DEBUG_SERATO === '1';
-function debug(message: string, data?: unknown): void {
-  if (!DEBUG) return;
-  const timestamp = new Date().toISOString().slice(11, 23);
-  if (data !== undefined) {
-    console.log(`[serato-v4-parser ${timestamp}] ${message}`, JSON.stringify(data, null, 2));
-  } else {
-    console.log(`[serato-v4-parser ${timestamp}] ${message}`);
-  }
-}
+import { type Logger, noopLogger } from './types/logger.js';
 
 /**
  * Get the default path to the Serato 4 Library folder.
@@ -83,7 +72,7 @@ interface RawSession {
  * Get location mappings from the connection table.
  * This maps location_id to base paths for resolving full file paths.
  */
-function getLocationMappings(db: Database.Database): Map<number, string> {
+function getLocationMappings(db: Database.Database, logger: Logger): Map<number, string> {
   const mappings = new Map<number, string>();
 
   try {
@@ -109,11 +98,11 @@ function getLocationMappings(db: Database.Database): Map<number, string> {
       }
     }
 
-    debug('getLocationMappings: resolved mappings', {
+    logger.debug('getLocationMappings: resolved mappings', JSON.stringify({
       mappings: Object.fromEntries(mappings),
-    });
+    }, null, 2));
   } catch (err) {
-    debug('getLocationMappings: error', { error: String(err) });
+    logger.debug('getLocationMappings: error', JSON.stringify({ error: String(err) }, null, 2));
   }
 
   return mappings;
@@ -167,7 +156,8 @@ function parseStreamingId(portableId: string): { source: string; id: string } | 
 function resolveAssetMetadata(
   db: Database.Database,
   portableId: string,
-  locationMappings: Map<number, string>
+  locationMappings: Map<number, string>,
+  logger: Logger,
 ): AssetMetadata {
   const result: AssetMetadata = { fullPath: null };
 
@@ -187,7 +177,7 @@ function resolveAssetMetadata(
     } | undefined;
 
     if (!asset) {
-      debug('resolveAssetMetadata: asset not found', { portableId });
+      logger.debug('resolveAssetMetadata: asset not found', JSON.stringify({ portableId }, null, 2));
       return result;
     }
 
@@ -204,23 +194,23 @@ function resolveAssetMetadata(
         result.artworkUrl = typeData.cover_id;
       }
 
-      debug('resolveAssetMetadata: streaming track', {
+      logger.debug('resolveAssetMetadata: streaming track', JSON.stringify({
         portableId,
         streamingSource: result.streamingSource,
         streamingId: result.streamingId,
         artworkUrl: result.artworkUrl,
-      });
+      }, null, 2));
     } else {
       // Regular file - resolve full path
       const basePath = locationMappings.get(asset.location_id);
       if (basePath) {
         result.fullPath = basePath + asset.portable_id;
-        debug('resolveAssetMetadata: local file', { portableId, fullPath: result.fullPath });
+        logger.debug('resolveAssetMetadata: local file', JSON.stringify({ portableId, fullPath: result.fullPath }, null, 2));
       } else {
-        debug('resolveAssetMetadata: no base path for location', {
+        logger.debug('resolveAssetMetadata: no base path for location', JSON.stringify({
           portableId,
           locationId: asset.location_id,
-        });
+        }, null, 2));
       }
     }
 
@@ -232,7 +222,7 @@ function resolveAssetMetadata(
 
     return result;
   } catch (err) {
-    debug('resolveAssetMetadata: error', { portableId, error: String(err) });
+    logger.debug('resolveAssetMetadata: error', JSON.stringify({ portableId, error: String(err) }, null, 2));
     return result;
   }
 }
@@ -243,7 +233,8 @@ function resolveAssetMetadata(
 function entryToSong(
   entry: RawHistoryEntry,
   db?: Database.Database,
-  locationMappings?: Map<number, string>
+  locationMappings?: Map<number, string>,
+  logger: Logger = noopLogger,
 ): SeratoHistorySong {
   let filePath = entry.file_name || entry.portable_id || '';
   let artworkUrl: string | undefined;
@@ -256,7 +247,7 @@ function entryToSong(
 
   // Try to resolve asset metadata if we have the database connection
   if (db && locationMappings && entry.portable_id) {
-    const metadata = resolveAssetMetadata(db, entry.portable_id, locationMappings);
+    const metadata = resolveAssetMetadata(db, entry.portable_id, locationMappings, logger);
     if (metadata.fullPath) {
       filePath = metadata.fullPath;
     }
@@ -291,7 +282,7 @@ function entryToSong(
 /**
  * Get all sessions from Serato 4 database.
  */
-export function getSeratoV4Sessions(libraryPath?: string): SeratoSession[] {
+export function getSeratoV4Sessions(libraryPath?: string, logger: Logger = noopLogger): SeratoSession[] {
   const dbPath = getMasterDatabasePath(libraryPath);
   if (!existsSync(dbPath)) {
     return [];
@@ -300,7 +291,7 @@ export function getSeratoV4Sessions(libraryPath?: string): SeratoSession[] {
   const db = new Database(dbPath, { readonly: true });
   try {
     // Get location mappings for resolving full file paths
-    const locationMappings = getLocationMappings(db);
+    const locationMappings = getLocationMappings(db, logger);
 
     const sessions = db.prepare(`
       SELECT id, start_time, end_time, name
@@ -319,7 +310,7 @@ export function getSeratoV4Sessions(libraryPath?: string): SeratoSession[] {
       return {
         date: new Date(session.start_time * 1000).toISOString().split('T')[0],
         index: session.id,
-        songs: entries.map((e) => entryToSong(e, db, locationMappings)),
+        songs: entries.map((e) => entryToSong(e, db, locationMappings, logger)),
       };
     });
   } finally {
@@ -330,7 +321,7 @@ export function getSeratoV4Sessions(libraryPath?: string): SeratoSession[] {
 /**
  * Get songs from the latest (current) session.
  */
-export function getLatestSessionSongsV4(libraryPath?: string): SeratoHistorySong[] {
+export function getLatestSessionSongsV4(libraryPath?: string, logger: Logger = noopLogger): SeratoHistorySong[] {
   const dbPath = getMasterDatabasePath(libraryPath);
   if (!existsSync(dbPath)) {
     return [];
@@ -339,7 +330,7 @@ export function getLatestSessionSongsV4(libraryPath?: string): SeratoHistorySong
   const db = new Database(dbPath, { readonly: true });
   try {
     // Get location mappings for resolving full file paths
-    const locationMappings = getLocationMappings(db);
+    const locationMappings = getLocationMappings(db, logger);
 
     // Debug: show all sessions
     const allSessions = db.prepare(`
@@ -349,14 +340,14 @@ export function getLatestSessionSongsV4(libraryPath?: string): SeratoHistorySong
       LIMIT 5
     `).all() as RawSession[];
 
-    debug('getLatestSessionSongsV4: all recent sessions', {
+    logger.debug('getLatestSessionSongsV4: all recent sessions', JSON.stringify({
       sessions: allSessions.map((s) => ({
         id: s.id,
         start_time: s.start_time ? new Date(s.start_time * 1000).toISOString() : null,
         end_time: s.end_time ? new Date(s.end_time * 1000).toISOString() : null,
         name: s.name,
       })),
-    });
+    }, null, 2));
 
     // Get the latest session
     const session = allSessions[0];
@@ -365,10 +356,10 @@ export function getLatestSessionSongsV4(libraryPath?: string): SeratoHistorySong
       return [];
     }
 
-    debug('getLatestSessionSongsV4: using session', {
+    logger.debug('getLatestSessionSongsV4: using session', JSON.stringify({
       sessionId: session.id,
       start_time: session.start_time ? new Date(session.start_time * 1000).toISOString() : null,
-    });
+    }, null, 2));
 
     const entries = db.prepare(`
       SELECT id, session_id, name, artist, deck, start_time, end_time, played, bpm, file_name, portable_id
@@ -377,7 +368,7 @@ export function getLatestSessionSongsV4(libraryPath?: string): SeratoHistorySong
       ORDER BY start_time ASC
     `).all(session.id) as RawHistoryEntry[];
 
-    debug('getLatestSessionSongsV4: raw entries from database', {
+    logger.debug('getLatestSessionSongsV4: raw entries from database', JSON.stringify({
       sessionId: session.id,
       entryCount: entries.length,
       entries: entries.map((e) => ({
@@ -392,9 +383,9 @@ export function getLatestSessionSongsV4(libraryPath?: string): SeratoHistorySong
         played: e.played,
         portable_id: e.portable_id,
       })),
-    });
+    }, null, 2));
 
-    return entries.map((e) => entryToSong(e, db, locationMappings));
+    return entries.map((e) => entryToSong(e, db, locationMappings, logger));
   } finally {
     db.close();
   }

@@ -30,6 +30,10 @@ export {
   getDatabaseMtime,
 } from './historyParserV4.js';
 
+// Logger
+export type { Logger } from './types/logger.js';
+export { noopLogger } from './types/logger.js';
+
 // Core types
 export type {
   SeratoConnectOptions,

@@ -8,18 +8,7 @@ import EventEmitter from 'node:events';
 import { existsSync, statSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-
-// Debug tracing - enable with DEBUG_SERATO=1 environment variable
-const DEBUG = process.env.DEBUG_SERATO === '1';
-function debug(message: string, data?: unknown): void {
-  if (!DEBUG) return;
-  const timestamp = new Date().toISOString().slice(11, 23);
-  if (data !== undefined) {
-    console.log(`[serato-connect ${timestamp}] ${message}`, JSON.stringify(data, null, 2));
-  } else {
-    console.log(`[serato-connect ${timestamp}] ${message}`);
-  }
-}
+import { type Logger, noopLogger } from './types/logger.js';
 import {
   getSeratoHistory,
   getSessionSongs,
@@ -54,7 +43,7 @@ import type {
   TypedEmitter,
 } from './types.js';
 
-const DEFAULT_OPTIONS: Required<Omit<SeratoConnectOptions, 'seratoPath' | 'forceVersion'>> = {
+const DEFAULT_OPTIONS: Required<Omit<SeratoConnectOptions, 'seratoPath' | 'forceVersion' | 'logger'>> = {
   pollIntervalMs: 2000,
   historyMaxRows: 100,
 };
@@ -103,11 +92,6 @@ export function detectSeratoVersion(seratoV3Path?: string): SeratoVersion {
     const v4Mtime = getDatabaseMtime();
     const v3HistoryPath = join(v3Path, 'History');
     const v3Mtime = statSync(v3HistoryPath).mtimeMs;
-
-    debug('detectSeratoVersion: both v3 and v4 found, comparing mtimes', {
-      v3Mtime: new Date(v3Mtime).toISOString(),
-      v4Mtime: new Date(v4Mtime).toISOString(),
-    });
 
     return v3Mtime > v4Mtime ? 'v3' : 'v4';
   }
@@ -172,7 +156,7 @@ export function detectSeratoInstallation(customPath?: string): {
  * Supports both Serato 3 (binary format) and Serato 4 (SQLite database).
  */
 export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
-  private options: Required<Omit<SeratoConnectOptions, 'seratoPath' | 'forceVersion'>> & {
+  private options: Required<Omit<SeratoConnectOptions, 'seratoPath' | 'forceVersion' | 'logger'>> & {
     seratoPath: string;
     forceVersion?: SeratoVersion;
   };
@@ -190,9 +174,12 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
   private lastV4SessionId: number | null = null;
   /** V4: Last entry count for change detection */
   private lastV4EntryCount: number = 0;
+  /** Pluggable logger instance */
+  private logger: Logger;
 
   constructor(options: SeratoConnectOptions = {}) {
     super();
+    this.logger = options.logger ?? noopLogger;
     this.options = {
       ...DEFAULT_OPTIONS,
       ...options,
@@ -222,12 +209,12 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
     // Detect version
     this.detectedVersion = this.options.forceVersion || detectSeratoVersion(this.options.seratoPath);
 
-    debug('start: detected version', {
+    this.logger.debug('start: detected version', JSON.stringify({
       version: this.detectedVersion,
       forcedVersion: this.options.forceVersion,
       seratoPath: this.options.seratoPath,
       pollIntervalMs: this.options.pollIntervalMs,
-    });
+    }, null, 2));
 
     if (this.detectedVersion === 'v4') {
       await this.startV4();
@@ -307,7 +294,7 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
     this.isRunning = true;
 
     // Load initial sessions
-    const sessions = getSeratoV4Sessions();
+    const sessions = getSeratoV4Sessions(undefined, this.logger);
 
     // Update stored path to v4 library path
     this.options.seratoPath = getDefaultSeratoV4LibraryPath();
@@ -326,7 +313,7 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
       this.lastSessionMtime = getDatabaseMtime();
 
       // Load initial deck states from history
-      const songs = getLatestSessionSongsV4();
+      const songs = getLatestSessionSongsV4(undefined, this.logger);
       const newDeckStates = this.computeDeckStates(songs);
 
       // Emit initial deck states (all changes from null)
@@ -469,25 +456,25 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
    * Poll for changes in Serato 3 (binary format).
    */
   private async pollV3(): Promise<void> {
-    debug('pollV3: checking for changes');
+    this.logger.debug('pollV3: checking for changes');
 
     // Check for new session file
     const currentSessionPath = getLatestSessionPath(this.options.seratoPath);
     if (!currentSessionPath || !existsSync(currentSessionPath)) {
-      debug('pollV3: no session file found');
+      this.logger.debug('pollV3: no session file found');
       return;
     }
 
     const stat = statSync(currentSessionPath);
     const currentMtime = stat.mtimeMs;
 
-    debug('pollV3: mtime comparison', {
+    this.logger.debug('pollV3: mtime comparison', JSON.stringify({
       currentPath: currentSessionPath,
       lastPath: this.lastSessionPath,
       currentMtime,
       lastMtime: this.lastSessionMtime,
       changed: currentSessionPath !== this.lastSessionPath || currentMtime !== this.lastSessionMtime,
-    });
+    }, null, 2));
 
     // Check if session file changed
     if (currentSessionPath !== this.lastSessionPath || currentMtime !== this.lastSessionMtime) {
@@ -516,7 +503,7 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
       // Parse the session and compute new deck states
       const songs = await getSessionSongs(currentSessionPath);
 
-      debug('pollV3: songs returned from database', {
+      this.logger.debug('pollV3: songs returned from database', JSON.stringify({
         totalSongs: songs.length,
         songs: songs.map((s) => ({
           title: s.title,
@@ -527,26 +514,26 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
           played: s.played,
           bpm: s.bpm,
         })),
-      });
+      }, null, 2));
 
       const newDeckStates = this.computeDeckStates(songs);
 
-      debug('pollV3: computed deck states', {
+      this.logger.debug('pollV3: computed deck states', JSON.stringify({
         deckStates: newDeckStates.map((s, i) =>
           s ? { deck: i + 1, title: s.title, artist: s.artist } : { deck: i + 1, empty: true }
         ),
-      });
+      }, null, 2));
 
       // Compare and emit deck changes
       this.emitDeckChanges(newDeckStates);
 
       // Emit history for only NEW tracks since last poll (incremental)
       const newTracks = songs.slice(this.lastHistoryIndex);
-      debug('pollV3: new tracks since last poll', {
+      this.logger.debug('pollV3: new tracks since last poll', JSON.stringify({
         lastHistoryIndex: this.lastHistoryIndex,
         newTracksCount: newTracks.length,
         newTracks: newTracks.map((s) => ({ title: s.title, artist: s.artist, deck: s.deck })),
-      });
+      }, null, 2));
       if (newTracks.length > 0) {
         this.lastHistoryIndex = songs.length;
         this.emit('history', {
@@ -579,7 +566,7 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
    * Poll for changes in Serato 4 (SQLite database).
    */
   private async pollV4(): Promise<void> {
-    debug('pollV4: checking for changes');
+    this.logger.debug('pollV4: checking for changes');
 
     // Check database mtime for quick change detection
     // NOTE: Serato 4 keeps the database file open, so mtime may not update
@@ -588,11 +575,11 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
     const currentMtime = getDatabaseMtime();
     const mtimeChanged = currentMtime !== this.lastSessionMtime;
 
-    debug('pollV4: mtime comparison', {
+    this.logger.debug('pollV4: mtime comparison', JSON.stringify({
       currentMtime,
       lastMtime: this.lastSessionMtime,
       changed: mtimeChanged,
-    });
+    }, null, 2));
 
     // Always update stored mtime
     this.lastSessionMtime = currentMtime;
@@ -600,24 +587,24 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
     // Get current session info
     const sessionInfo = getLatestSessionInfoV4();
 
-    debug('pollV4: session info', {
+    this.logger.debug('pollV4: session info', JSON.stringify({
       sessionInfo,
       lastSessionId: this.lastV4SessionId,
       lastEntryCount: this.lastV4EntryCount,
-    });
+    }, null, 2));
 
     if (!sessionInfo) {
-      debug('pollV4: no session found');
+      this.logger.debug('pollV4: no session found');
       return;
     }
 
     // Check if session changed
     const isNewSession = sessionInfo.id !== this.lastV4SessionId;
-    debug('pollV4: session comparison', {
+    this.logger.debug('pollV4: session comparison', JSON.stringify({
       isNewSession,
       currentSessionId: sessionInfo.id,
       lastSessionId: this.lastV4SessionId,
-    });
+    }, null, 2));
 
     // Reset cursor and deck states on new session
     if (isNewSession) {
@@ -638,17 +625,17 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
 
     // Check if entry count changed (new tracks added)
     if (sessionInfo.entryCount === this.lastV4EntryCount && !isNewSession) {
-      debug('pollV4: no new entries (count unchanged)', {
+      this.logger.debug('pollV4: no new entries (count unchanged)', JSON.stringify({
         entryCount: sessionInfo.entryCount,
         lastEntryCount: this.lastV4EntryCount,
-      });
+      }, null, 2));
       return; // No new entries
     }
 
     // Get songs from latest session
-    const songs = getLatestSessionSongsV4();
+    const songs = getLatestSessionSongsV4(undefined, this.logger);
 
-    debug('pollV4: songs returned from database', {
+    this.logger.debug('pollV4: songs returned from database', JSON.stringify({
       totalSongs: songs.length,
       songs: songs.map((s) => ({
         title: s.title,
@@ -665,26 +652,26 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
         album: s.album,
         label: s.label,
       })),
-    });
+    }, null, 2));
 
     const newDeckStates = this.computeDeckStates(songs);
 
-    debug('pollV4: computed deck states', {
+    this.logger.debug('pollV4: computed deck states', JSON.stringify({
       deckStates: newDeckStates.map((s, i) =>
         s ? { deck: i + 1, title: s.title, artist: s.artist } : { deck: i + 1, empty: true }
       ),
-    });
+    }, null, 2));
 
     // Compare and emit deck changes
     this.emitDeckChanges(newDeckStates);
 
     // Emit history for only NEW tracks since last poll (incremental)
     const newTracks = songs.slice(this.lastHistoryIndex);
-    debug('pollV4: new tracks since last poll', {
+    this.logger.debug('pollV4: new tracks since last poll', JSON.stringify({
       lastHistoryIndex: this.lastHistoryIndex,
       newTracksCount: newTracks.length,
       newTracks: newTracks.map((s) => ({ title: s.title, artist: s.artist, deck: s.deck })),
-    });
+    }, null, 2));
     if (newTracks.length > 0) {
       this.lastHistoryIndex = songs.length;
       this.lastV4EntryCount = sessionInfo.entryCount;
