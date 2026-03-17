@@ -722,10 +722,12 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
    */
   private computeDeckStates(songs: SeratoHistorySong[]): (SeratoHistorySong | null)[] {
     const states: (SeratoHistorySong | null)[] = new Array(NUM_DECKS).fill(null);
+    let anyDeckAssigned = false;
 
-    // Process songs in order - later entries override earlier ones for the same deck
+    // First pass: process tracks with known deck numbers
     for (const song of songs) {
       if (song.deck && song.deck >= 1 && song.deck <= NUM_DECKS) {
+        anyDeckAssigned = true;
         const deckIndex = song.deck - 1;
 
         if (song.startTime !== undefined && song.playTime === undefined) {
@@ -734,6 +736,18 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
         } else if (song.playTime !== undefined) {
           // Track was ejected (has end time) - deck is now empty
           states[deckIndex] = null;
+        }
+      }
+    }
+
+    // Fallback: if no tracks had deck info, assign loaded tracks to virtual deck slots
+    if (!anyDeckAssigned) {
+      let nextSlot = 0;
+      for (const song of songs) {
+        if (nextSlot >= NUM_DECKS) break;
+        if (song.startTime !== undefined && song.playTime === undefined) {
+          states[nextSlot] = song;
+          nextSlot++;
         }
       }
     }

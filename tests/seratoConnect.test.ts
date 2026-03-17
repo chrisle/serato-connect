@@ -791,6 +791,92 @@ describe('SeratoConnect', () => {
     });
   });
 
+  describe('deckless track fallback', () => {
+    it('emits deckChange for tracks without deck info via fallback', async () => {
+      // Create a session with tracks that have NO deck info (simulating Serato not writing deck)
+      const songs = [
+        {
+          title: 'Deckless Track',
+          artist: 'Unknown DJ',
+          filePath: '/deckless.mp3',
+          startTime: new Date(),
+          // No deck field - simulates Serato not providing deck info
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(songs)
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      const deckChanges: SeratoDeckChangePayload[] = [];
+
+      connect.on('deckChange', (payload) => {
+        deckChanges.push(payload);
+      });
+
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      // Fallback should assign the deckless track to virtual deck 1
+      expect(deckChanges.length).toBeGreaterThan(0);
+      const change = deckChanges.find((d) => d.track?.title === 'Deckless Track');
+      expect(change).toBeDefined();
+      expect(change!.deckId).toBe(1);
+
+      connect.stop();
+    });
+
+    it('assigns multiple deckless tracks to sequential virtual decks', async () => {
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([])
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      const deckChanges: SeratoDeckChangePayload[] = [];
+
+      connect.on('deckChange', (payload) => {
+        deckChanges.push(payload);
+      });
+
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Add two deckless tracks
+      const songs = [
+        {
+          title: 'Track A',
+          artist: 'Artist A',
+          filePath: '/a.mp3',
+          startTime: new Date(),
+        },
+        {
+          title: 'Track B',
+          artist: 'Artist B',
+          filePath: '/b.mp3',
+          startTime: new Date(),
+        },
+      ];
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer(songs)
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Tracks should be assigned to deck 1 and deck 2 respectively
+      const trackA = deckChanges.find((d) => d.track?.title === 'Track A');
+      const trackB = deckChanges.find((d) => d.track?.title === 'Track B');
+      expect(trackA).toBeDefined();
+      expect(trackB).toBeDefined();
+      expect(trackA!.deckId).toBe(1);
+      expect(trackB!.deckId).toBe(2);
+
+      connect.stop();
+    });
+  });
+
   describe('version detection', () => {
     it('returns v3 version for v3 installations', async () => {
       await fs.promises.writeFile(

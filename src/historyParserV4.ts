@@ -228,6 +228,18 @@ function resolveAssetMetadata(
 }
 
 /**
+ * Parse a deck value from string to number.
+ * Handles numeric strings ("1"-"4") and letter names ("A"-"D").
+ */
+export function parseDeckValue(deck: string | null | undefined): number | undefined {
+  if (!deck) return undefined;
+  const num = parseInt(deck, 10);
+  if (!isNaN(num) && num >= 1 && num <= 4) return num;
+  const letterMap: Record<string, number> = { A: 1, B: 2, C: 3, D: 4 };
+  return letterMap[deck.toUpperCase()];
+}
+
+/**
  * Convert raw SQLite entry to SeratoHistorySong.
  */
 function entryToSong(
@@ -268,7 +280,7 @@ function entryToSong(
     startTime: entry.start_time > 0 ? new Date(entry.start_time * 1000) : undefined,
     playTime: entry.end_time > 0 ? new Date(entry.end_time * 1000) : undefined,
     played: entry.played === 1,
-    deck: entry.deck ? parseInt(entry.deck, 10) : undefined,
+    deck: parseDeckValue(entry.deck),
     artworkUrl,
     streamingSource,
     streamingId,
