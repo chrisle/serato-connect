@@ -19,8 +19,8 @@ export function getDefaultSeratoV4LibraryPath(): string {
     return join(homedir(), 'Library', 'Application Support', 'Serato', 'Library');
   }
   if (platform === 'win32') {
-    // Windows: %APPDATA%\Serato\Library (likely location)
-    return join(process.env.APPDATA || join(homedir(), 'AppData', 'Roaming'), 'Serato', 'Library');
+    // Windows: %LOCALAPPDATA%\Serato\Library
+    return join(process.env.LOCALAPPDATA || join(homedir(), 'AppData', 'Local'), 'Serato', 'Library');
   }
   throw new Error('Serato DJ Pro is only supported on macOS and Windows');
 }
