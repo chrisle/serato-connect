@@ -61,6 +61,24 @@ function getStringFromUInt32(n: number): string {
 }
 
 /**
+ * Read a UTF-16 BE encoded string from a buffer.
+ * Serato binary format stores all text fields as UTF-16 Big Endian.
+ */
+function readUtf16BE(buffer: Buffer, offset: number, length: number): string {
+  if (length < 2) return '';
+  const bytes = buffer.subarray(offset, offset + length);
+  // Swap bytes for Node's UTF-16 LE decoder
+  const swapped = Buffer.alloc(length);
+  for (let i = 0; i < length; i += 2) {
+    if (i + 1 < length) {
+      swapped[i] = bytes[i + 1];
+      swapped[i + 1] = bytes[i];
+    }
+  }
+  return swapped.toString('utf16le').replace(/\0/g, '');
+}
+
+/**
  * Parse a single chunk from the Serato binary format
  */
 async function parseChunk(
@@ -105,9 +123,7 @@ async function parseChunk(
     }
 
     default:
-      data = buffer
-        .toString('latin1', index + 8, index + 8 + length)
-        .replace(/\0/g, '');
+      data = readUtf16BE(buffer, index + 8, length);
       break;
   }
 

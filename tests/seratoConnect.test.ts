@@ -32,11 +32,21 @@ function createChunk(tag: string, data: Buffer): Buffer {
 }
 
 /**
- * Create a string field for session entries
+ * Encode a string as UTF-16 Big Endian (matching Serato binary format).
+ */
+function utf16BE(str: string): Buffer {
+  const buf = Buffer.alloc(str.length * 2);
+  for (let i = 0; i < str.length; i++) {
+    buf.writeUInt16BE(str.charCodeAt(i), i * 2);
+  }
+  return buf;
+}
+
+/**
+ * Create a string field for session entries (UTF-16 BE encoded).
  */
 function stringField(tag: string, value: string): Buffer {
-  // Pad with null byte
-  const valueBuf = Buffer.from(value + '\0', 'latin1');
+  const valueBuf = utf16BE(value);
   return createChunk(tag, valueBuf);
 }
 
