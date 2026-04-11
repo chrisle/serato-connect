@@ -1,5 +1,11 @@
 # Change log
 
+## v1.1.1
+
+- fix: use LOCALAPPDATA for Serato v4 library path on Windows
+- fix: parse v3 history text fields as UTF-16 BE instead of latin1
+
+
 ## v1.0.4
 
 - feat: add incremental history tracking with cursor
