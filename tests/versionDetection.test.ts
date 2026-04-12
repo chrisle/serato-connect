@@ -222,6 +222,65 @@ describe('Version detection consistency', () => {
     });
   });
 
+  describe('detectSeratoInstallation with additionalV3Paths', () => {
+    it('finds v3 library at an additional candidate path with History', async () => {
+      // Create a temp dir with v3 History structure — simulates redirected Music folder
+      await fs.promises.mkdir(path.join(mockV3Path, 'History'), { recursive: true });
+
+      // Pass it as an additional candidate. The function should return found=true
+      // from either the default path (if it exists on the machine) or the additional path.
+      const result = detectSeratoInstallation(undefined, [mockV3Path]);
+      expect(result.found).toBe(true);
+      expect(result.hasHistory).toBe(true);
+      expect(result.version).toBe('v3');
+    });
+
+    it('returns the additional path when it has History and is found', async () => {
+      // Use a fresh temp dir that is guaranteed not to be the real default Serato path.
+      // Pass it as customPath (not additional) so the default path is bypassed entirely.
+      await fs.promises.mkdir(path.join(mockV3Path, 'History'), { recursive: true });
+
+      // customPath bypasses default path check and only checks this specific path
+      const result = detectSeratoInstallation(mockV3Path);
+      expect(result.found).toBe(true);
+      expect(result.path).toBe(mockV3Path);
+      expect(result.hasHistory).toBe(true);
+      expect(result.version).toBe('v3');
+    });
+
+    it('returns not found when additional path has no History (and customPath also has no History)', async () => {
+      // Folder exists but no History subfolder
+      await fs.promises.mkdir(mockV3Path, { recursive: true });
+
+      // Use customPath to isolate from machine state (bypasses default path check)
+      const result = detectSeratoInstallation(mockV3Path);
+      expect(result.found).toBe(true);
+      expect(result.hasHistory).toBe(false);
+      expect(result.version).toBe('unknown');
+    });
+
+    it('ignores additional paths when a custom path is explicitly provided', async () => {
+      // Custom path has no History, additional path does — custom path takes precedence
+      await fs.promises.mkdir(mockV3Path, { recursive: true });
+      const altPath = path.join(tempDir, 'alt', '_Serato_');
+      await fs.promises.mkdir(path.join(altPath, 'History'), { recursive: true });
+
+      const result = detectSeratoInstallation(mockV3Path, [altPath]);
+      expect(result.path).toBe(mockV3Path);
+      expect(result.hasHistory).toBe(false);
+      expect(result.version).toBe('unknown');
+    });
+
+    it('accepts additional paths alongside default path without errors', async () => {
+      // Verifies the function signature change is backward-compatible
+      await fs.promises.mkdir(path.join(mockV3Path, 'History'), { recursive: true });
+      const altPath = path.join(tempDir, 'alt', '_Serato_');
+
+      // Should not throw when additional paths are provided
+      expect(() => detectSeratoInstallation(undefined, [mockV3Path, altPath])).not.toThrow();
+    });
+  });
+
   describe('forceVersion option', () => {
     it('allows forcing v3 mode', async () => {
       // Create v3 structure

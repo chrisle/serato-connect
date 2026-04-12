@@ -106,8 +106,17 @@ export function detectSeratoVersion(seratoV3Path?: string): SeratoVersion {
  * Detect if Serato is installed by checking for the _Serato_ folder or SQLite database.
  * Supports both Serato 3 (binary format) and Serato 4 (SQLite database).
  * If a custom path is provided, only checks that path for v3 format.
+ *
+ * @param customPath - User-configured custom path to the _Serato_ folder. When provided,
+ *   only this path is checked (v4 detection is skipped).
+ * @param additionalV3Paths - Extra candidate paths to check for v3 when auto-detecting.
+ *   Useful on Windows where the Music folder may be redirected (e.g., via OneDrive).
+ *   Checked in order after the default v3 path.
  */
-export function detectSeratoInstallation(customPath?: string): {
+export function detectSeratoInstallation(
+  customPath?: string,
+  additionalV3Paths?: string[]
+): {
   found: boolean;
   path: string;
   hasHistory: boolean;
@@ -138,15 +147,27 @@ export function detectSeratoInstallation(customPath?: string): {
     };
   }
 
-  const seratoPath = getDefaultSeratoPath();
-  const found = existsSync(seratoPath);
-  const hasHistory = found && existsSync(join(seratoPath, 'History'));
+  // Check the default v3 path and any additional candidate paths.
+  // Additional paths handle cases where the Music folder is in a non-default location
+  // (e.g., redirected via OneDrive on Windows, or custom Serato library location).
+  const v3CandidatePaths = [getDefaultSeratoPath(), ...(additionalV3Paths ?? [])];
+  for (const candidatePath of v3CandidatePaths) {
+    if (existsSync(candidatePath) && existsSync(join(candidatePath, 'History'))) {
+      return {
+        found: true,
+        path: candidatePath,
+        hasHistory: true,
+        version: 'v3',
+      };
+    }
+  }
 
+  // Nothing found - return not found with the default path
   return {
-    found,
-    path: seratoPath,
-    hasHistory,
-    version,
+    found: false,
+    path: getDefaultSeratoPath(),
+    hasHistory: false,
+    version: 'unknown',
   };
 }
 
