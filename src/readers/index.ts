@@ -18,7 +18,7 @@
  * @module readers
  */
 
-import { parseFile, type IAudioMetadata, type ITag } from 'music-metadata';
+import type { IAudioMetadata, ITag } from 'music-metadata';
 import { SeratoTrackMetadata } from '../types.js';
 import {
   parseMarkers2,
@@ -289,6 +289,7 @@ export async function getTrackMetadata(
   let metadata: IAudioMetadata;
 
   try {
+    const { parseFile } = await import('music-metadata');
     metadata = await parseFile(filePath, {
       skipCovers: true,
       includeChapters: false,

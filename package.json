@@ -45,7 +45,7 @@
   "dependencies": {
     "better-sqlite3-multiple-ciphers": "^12.9.0",
     "bonjour-service": "^1.3.0",
-    "music-metadata": "^10.7.0",
+    "music-metadata": "^11.12.3",
     "strict-event-emitter-types": "^2.0.0"
   },
   "devDependencies": {
