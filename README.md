@@ -4,11 +4,19 @@ A comprehensive library for reading Serato DJ data, including history files, cue
 
 ## Features
 
-### Real-time Monitoring
+### Real-time Monitoring (file-based)
 - Polls Serato history session files for changes (mtime-based)
 - Typed events: `ready`, `poll`, `track`, `history`, `session`, `error`
 - Tracks deck states (which deck is playing what)
 - Detects currently playing track across multiple decks
+
+### Real-time Monitoring (network — Serato Remote protocol)
+- OSC-over-TCP client implementing the `_SeratoIOSRemote._tcp` Bonjour service
+- Sub-frame latency on track changes, playhead, mixer, and loop state
+- Per-deck typed events: `deckChange`, `playhead`, `loopChange`, `mixerChange`
+- Drives the protocol handshake automatically; no Serato-side config required
+- Complementary to file-based mode — combine with GEOB/database reads for full
+  metadata. See [docs/protocol.md](./docs/protocol.md) for the wire spec.
 
 ### Track Metadata (GEOB Parsing)
 - Read cue points, loops, and flip recordings from audio files
@@ -52,6 +60,27 @@ serato.on('track', async (payload) => {
 });
 
 serato.start();
+```
+
+### Realtime via the Serato Remote network protocol
+
+```ts
+import { SeratoRemoteClient } from 'serato-connect';
+
+const remote = new SeratoRemoteClient({ peerName: 'my-app' });
+
+remote.on('deckChange', ({ deckId, track }) => {
+  console.log(`Deck ${deckId}:`, track?.artist, '-', track?.title);
+});
+
+remote.on('playhead', ({ deckId, playhead }) => {
+  // playhead.raw is the unmodified [f, f, f] from /Status/Deck/Playhead.
+  console.log(`Deck ${deckId} pos:`, playhead.positionSeconds);
+});
+
+const { port, instanceName } = await remote.start();
+console.log(`Advertising "${instanceName}" on port ${port}`);
+// Open Serato DJ Pro on the same network — it will auto-connect.
 ```
 
 ## API
