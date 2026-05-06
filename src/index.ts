@@ -122,3 +122,42 @@ export {
   getTrackMetadata,
   getTrackMetadataFromBuffer,
 } from './readers/index.js';
+
+// Realtime OSC-over-TCP client (Serato Remote protocol)
+export {
+  SeratoRemoteClient,
+  RemoteServer,
+  RemoteSession,
+  publishSeratoRemote,
+  buildInstanceName,
+  SERATO_REMOTE_SERVICE_TYPE,
+  encodeOsc,
+  decodeOsc,
+  frameOsc,
+  FrameReader,
+  osc,
+  arg,
+  NUM_REMOTE_DECKS,
+  DEFAULT_SUBSCRIPTION_TOPICS,
+} from './remote/index.js';
+export type {
+  SeratoRemoteOptions,
+  SeratoRemoteEvents,
+  SeratoRemoteTrack,
+  SeratoRemotePlayhead,
+  SeratoRemoteLoopState,
+  SeratoRemoteMixerState,
+  SeratoRemoteDeckChangePayload,
+  SeratoRemotePlayheadPayload,
+  SeratoRemoteLoopPayload,
+  SeratoRemoteMixerPayload,
+  SeratoRemoteReadyInfo,
+  SeratoRemotePeerInfo,
+  MdnsPublication,
+  MdnsPublishOptions,
+  OscArg,
+  OscMessage,
+  RemoteSessionPeer,
+  RemoteServerOptions,
+  RemoteSessionOptions,
+} from './remote/index.js';
