@@ -30,7 +30,7 @@ export {
   type OscArg,
   type OscMessage,
 } from './osc.js';
-export { frameOsc, FrameReader } from './framing.js';
+export { frameOsc, FrameReader, FRAME_SENTINEL } from './framing.js';
 export {
   NUM_REMOTE_DECKS,
   DEFAULT_SUBSCRIPTION_TOPICS,

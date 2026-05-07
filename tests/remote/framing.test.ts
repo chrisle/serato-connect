@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { FrameReader, frameOsc } from '../../src/remote/framing.js';
-import { osc, arg } from '../../src/remote/osc.js';
+import { FRAME_SENTINEL, FrameReader, frameOsc } from '../../src/remote/framing.js';
+import { encodeOsc, osc, arg } from '../../src/remote/osc.js';
 
 describe('FrameReader', () => {
   it('returns one message for one whole frame', () => {
@@ -53,10 +53,37 @@ describe('FrameReader', () => {
     expect(second[0].address).toBe('/Status/Deck/Song/Title');
   });
 
-  it('rejects an oversized length prefix', () => {
-    const reader = new FrameReader(64); // 64-byte cap
-    const oversized = Buffer.alloc(4);
-    oversized.writeUInt32BE(1024, 0);
-    expect(() => reader.push(oversized)).toThrow(/exceeds max/);
+  it('appends the 16-byte sentinel after each encoded packet', () => {
+    const frame = frameOsc(osc('/Ping'));
+    const oscBytes = encodeOsc(osc('/Ping'));
+    expect(frame.length).toBe(oscBytes.length + FRAME_SENTINEL.length);
+    expect(frame.subarray(oscBytes.length)).toEqual(FRAME_SENTINEL);
+  });
+
+  it('throws if the sentinel is missing where expected', () => {
+    const reader = new FrameReader();
+    const oscBytes = encodeOsc(osc('/Ping'));
+    const wrongTrailer = Buffer.alloc(FRAME_SENTINEL.length); // all zeros
+    const bad = Buffer.concat([oscBytes, wrongTrailer]);
+    expect(() => reader.push(bad)).toThrow(/sentinel mismatch/);
+  });
+
+  it('parses a captured Serato Authorize/Request blob frame', () => {
+    // Captured 2026-05-05: ,bii with 16-byte blob and two int32=1
+    const reader = new FrameReader();
+    const frame = frameOsc(
+      osc(
+        '/StreamMgmt/Authorize/Request',
+        arg.b(Buffer.from('3f47500e7d40141e774a9b908ef6bec0', 'hex')),
+        arg.i(1),
+        arg.i(1),
+      ),
+    );
+    const out = reader.push(frame);
+    expect(out).toHaveLength(1);
+    expect(out[0].address).toBe('/StreamMgmt/Authorize/Request');
+    expect(out[0].args).toHaveLength(3);
+    expect(out[0].args[0].type).toBe('b');
+    expect((out[0].args[0] as { type: 'b'; value: Buffer }).value.length).toBe(16);
   });
 });
