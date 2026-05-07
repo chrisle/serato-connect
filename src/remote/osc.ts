@@ -13,7 +13,8 @@
 export type OscArg =
   | { type: 'i'; value: number }
   | { type: 'f'; value: number }
-  | { type: 's'; value: string };
+  | { type: 's'; value: string }
+  | { type: 'b'; value: Buffer };
 
 export interface OscMessage {
   address: string;
@@ -79,6 +80,15 @@ export function encodeOsc(msg: OscMessage): Buffer {
         argBufs.push(encodeOscString(arg.value));
         break;
       }
+      case 'b': {
+        const len = arg.value.length;
+        const padded = pad4(len);
+        const b = Buffer.alloc(4 + padded);
+        b.writeUInt32BE(len, 0);
+        arg.value.copy(b, 4);
+        argBufs.push(b);
+        break;
+      }
     }
   }
 
@@ -118,6 +128,16 @@ export function decodeOsc(buf: Buffer): OscMessage {
         cursor = next;
         break;
       }
+      case 'b': {
+        if (cursor + 4 > buf.length) throw new Error('OSC blob length truncated');
+        const blobLen = buf.readUInt32BE(cursor);
+        cursor += 4;
+        if (cursor + blobLen > buf.length) throw new Error('OSC blob data truncated');
+        const value = Buffer.from(buf.subarray(cursor, cursor + blobLen));
+        args.push({ type: 'b', value });
+        cursor += pad4(blobLen);
+        break;
+      }
       default:
         throw new Error(`Unsupported OSC type tag '${tag}'`);
     }
@@ -135,4 +155,5 @@ export const arg = {
   i: (value: number): OscArg => ({ type: 'i', value }),
   f: (value: number): OscArg => ({ type: 'f', value }),
   s: (value: string): OscArg => ({ type: 's', value }),
+  b: (value: Buffer): OscArg => ({ type: 'b', value }),
 };
