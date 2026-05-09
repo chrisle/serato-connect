@@ -1,5 +1,12 @@
 # Change log
 
+## v1.2.0
+
+- fix(ci): publish no longer fails when several connect repos release together
+- fix: serato library now publishes again so consumer apps get the v3 path expansion
+- feat: support additional v3 candidate paths in detectSeratoInstallation
+
+
 ## v1.1.1
 
 - fix: use LOCALAPPDATA for Serato v4 library path on Windows
