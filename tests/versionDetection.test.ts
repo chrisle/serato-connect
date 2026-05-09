@@ -28,14 +28,20 @@ describe('Version detection consistency', () => {
   let tempDir: string;
   let mockV3Path: string;
   let mockV4Path: string;
+  const originalPlatform = process.platform;
 
   beforeEach(async () => {
+    // Serato is only supported on macOS / Windows. CI runs Linux, so the
+    // path-resolution helpers throw unless we stub the platform. Force
+    // 'darwin' so the default-path branch is exercised.
+    Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
     tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'serato-version-test-'));
     mockV3Path = path.join(tempDir, 'v3', '_Serato_');
     mockV4Path = path.join(tempDir, 'v4', 'Library');
   });
 
   afterEach(async () => {
+    Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
     await fs.promises.rm(tempDir, { recursive: true, force: true });
   });
 
