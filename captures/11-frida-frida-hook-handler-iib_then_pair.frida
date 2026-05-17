@@ -1,0 +1,40 @@
+MAIN Serato DJ Pro base=0x102c00000 size=103743488
+STR Authorize/Request @ 0x104645108 (off=0x1a45108)
+STR Authorize/Response @ 0x1046450c7 (off=0x1a450c7)
+STR Pair @ 0x10464512d (off=0x1a4512d)
+STR StatusChanged @ 0x1046450e6 (off=0x1a450e6)
+
+=== registration sites: 2 ===
+  Authorize/Response  reg=0xb79138  handler=0xb78cfc
+  StatusChanged  reg=0xb7923c  handler=0xb78ea8
+
+=== installing 2 handler hooks ===
+
+--- handler [Authorize/Response] @ 0xb78cfc prologue:
+     0x103778cfc  sub sp, sp, #0x60
+     0x103778d00  stp x24, x23, [sp, #0x20]
+     0x103778d04  stp x22, x21, [sp, #0x30]
+     0x103778d08  stp x20, x19, [sp, #0x40]
+     0x103778d0c  stp x29, x30, [sp, #0x50]
+     0x103778d10  add x29, sp, #0x50
+     0x103778d14  mov x19, x1
+     0x103778d18  cbz x2, #0x103778db0
+     0x103778d1c  ldr x8, [x2, #8]
+     0x103778d20  ldr x9, [x2, #0x18]
+HOOK [Authorize/Response] @ 0xb78cfc
+
+--- handler [StatusChanged] @ 0xb78ea8 prologue:
+     0x103778ea8  sub sp, sp, #0x30
+     0x103778eac  stp x20, x19, [sp, #0x10]
+     0x103778eb0  stp x29, x30, [sp, #0x20]
+     0x103778eb4  add x29, sp, #0x20
+     0x103778eb8  mov x19, x1
+     0x103778ebc  cbz x2, #0x103778f14
+     0x103778ec0  ldr x8, [x2, #8]
+     0x103778ec4  ldr x9, [x2, #0x18]
+     0x103778ec8  stp x8, x9, [sp]
+     0x103778ecc  mov x0, sp
+HOOK [StatusChanged] @ 0xb78ea8
+
+=== HOOKS READY ===
+

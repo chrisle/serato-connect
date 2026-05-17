@@ -1,0 +1,9 @@
+MAIN Serato DJ Pro base=0x102c74000
+malloc @ 0x18b115ce8
+HOOK malloc
+HOOK handler @ 0xb78cfc
+HOOK Authorize/Request fn prologue @ 0xb790c4
+HOOK Authorize/Response fn prologue @ 0xb78f38
+
+=== HOOKS READY ===
+

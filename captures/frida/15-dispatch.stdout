@@ -1,0 +1,14 @@
+MAIN Serato DJ Pro base=0x102294000 size=103743488
+STR Authorize/Request addr=0x103cd9108 page=0x103cd9000 off-in-page=0x108
+STR Authorize/Response addr=0x103cd90c7 page=0x103cd9000 off-in-page=0xc7
+STR Pair addr=0x103cd912d page=0x103cd9000 off-in-page=0x12d
+STR StatusChanged addr=0x103cd90e6 page=0x103cd9000 off-in-page=0xe6
+
+scanned=98.9MiB  ADRPs=480287  xrefs=1
+  0x102e0d1ac  off=0xb791ac  ADD k=1 -> Authorize/Request @ 0x103cd9108
+     +0: 0x102e0d1ac  adrp x1, #0x103cd9000
+     +4: 0x102e0d1b0  add x1, x1, #0x108
+     +8: 0x102e0d1b4  stp x20, x9, [sp]
+     +12: 0x102e0d1b8  adrp x2, #0x103cd9000
+     +16: 0x102e0d1bc  add x2, x2, #0x126
+-- DONE --

@@ -1,0 +1,151 @@
+[runner] attaching to pid=23633 script=scripts/frida-handler-deep.js duration=95.0s runtime=qjs
+[send] {'tag': 'main', 'name': 'Serato DJ Pro', 'base': '0x104f8c000'}
+[send] {'tag': 'hooked_AuthRespHandler', 'off': '0xb78cfc'}
+[send] {'tag': 'hooked_StatusHandler', 'off': '0xb78ea8'}
+[send] {'tag': 'hooked_kernel', 'fn': '__sendto', 'addr': '0x18b2e1370'}
+[send] {'tag': 'hooked_kernel', 'fn': '__sendmsg', 'addr': '0x18b2e296c'}
+[send] {'tag': 'hooked_kernel', 'fn': 'sendto', 'addr': '0x18b2e1370'}
+[send] {'tag': 'hooked_kernel', 'fn': 'sendmsg', 'addr': '0x18b2e296c'}
+[send] {'tag': 'hooked_kernel', 'fn': '__write_nocancel', 'addr': '0x18b2e0bc8'}
+[send] {'tag': 'hooked_kernel', 'fn': 'write', 'addr': '0x18b2e0818'}
+[send] {'tag': 'setup_done'}
+[runner] script loaded, hooks should be active
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 1, 'fd': 44, 'len': 1, 'preview': '00'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 2, 'fd': 44, 'len': 1, 'preview': '00'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 3, 'fd': 44, 'len': 1, 'preview': '00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 1, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 04 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 1, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 04 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 2, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 2, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 4, 'fd': 44, 'len': 1, 'preview': '00'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 5, 'fd': 44, 'len': 1, 'preview': '00'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 6, 'fd': 44, 'len': 1, 'preview': '00'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 1, 'fd': 2, 'len': 95, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 33 33 37 38 35 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 2, 'fd': 2, 'len': 89, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 33 34 32 34 37 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 3, 'fd': 2, 'len': 98, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 33 34 38 30 38 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 4, 'fd': 2, 'len': 79, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 34 30 39 32 32 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 5, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 34 31 30 35 32 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 7, 'fd': 44, 'len': 1, 'preview': '00'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 6, 'fd': 2, 'len': 86, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 36 32 36 32 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 7, 'fd': 2, 'len': 86, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 36 35 37 34 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 8, 'fd': 2, 'len': 86, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 36 36 38 36 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 9, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 36 38 33 35 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 10, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 36 39 34 37 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 11, 'fd': 2, 'len': 121, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 30 34 34 20 34 31 34 39 38 35'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 12, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 30 36 32 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 13, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 32 37 38 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 14, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 33 37 30 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 15, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 34 35 33 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 16, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 35 37 35 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 17, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 36 37 32 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 18, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 37 35 38 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 19, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 38 34 33 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 20, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 39 32 31 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 21, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 37 39 39 37 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 22, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 30 37 36 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 23, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 31 35 33 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 24, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 32 34 33 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 25, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 33 33 33 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 26, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 34 31 31 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 27, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 34 39 30 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 28, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 35 36 38 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 29, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 36 34 38 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': '__write_nocancel', 'n': 30, 'fd': 2, 'len': 87, 'preview': '49 32 30 32 36 30 35 30 36 20 30 31 3a 33 33 3a 30 39 2e 35 35 38 37 32 39 20 35 38 30 33 34 39'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 8, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 9, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 10, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 11, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 12, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 13, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 14, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 15, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 16, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 17, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 18, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 19, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 20, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 21, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 22, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 23, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 24, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 25, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 26, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 27, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 28, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 29, 'fd': 4, 'len': 327, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': 'write', 'n': 30, 'fd': 4, 'len': 338, 'preview': '88 a5 6c 65 76 65 6c a5 66 61 74 61 6c a8 70 6c 61 74 66 6f 72 6d a6 6e 61 74 69 76 65 a7 72 65'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 3, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 05 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 3, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 05 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 4, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 4, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'beat', 'n': 1, 't': 1778056391153}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 5, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 06 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 5, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 06 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 6, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 6, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 7, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 07 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 7, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 07 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 8, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 8, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 9, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 08 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 9, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 08 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 10, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 10, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'beat', 'n': 2, 't': 1778056396155}
+[send] {'tag': 'AUTH_RESP_HANDLER_enter', 'n': 1, 't': 1778056396784, 'x0': '0x3227ca3b0', 'x1': '0x3227ca340', 'x2': '0x16b12a7e0', 'x3': '0xff', 'x4': '0x60000025f24e', 'x5': '0x600014a3e38e', 'backtrace': ['MAIN+0xb781a4', 'MAIN+0xb77fa0', 'MAIN+0xb797e0', '0x10e41d538', '0x18b162b5c', '0x18b17cad4', '0x18b16b4e8', '0x18b16bfc4', '0x18b176474', '0x18b175d6c']}
+[send] {'tag': 'AUTH_RESP_HANDLER_mem_x1', 'bytes': 'e0 ea 30 0b 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 40 29 06 09 00 60 00 00 14 02 bc 05 01 00 00 00'}
+[send] {'tag': 'AUTH_RESP_HANDLER_mem_x2', 'bytes': '50 af e0 02 00 60 00 00 71 af e0 02 00 60 00 00 74 af e0 02 00 60 00 00 78 af e0 02 00 60 00 00 50 af e0 02 00 60 00 00 44 00 00 00 00 60 00 00 60 30 6c 14 00 60 00 00 50 af e0 02 00 60 00 00'}
+[send] {'tag': 'AUTH_RESP_HANDLER_mem_x0_deref', 'x0p': '0x10b30ebc8'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 11, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 09 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 11, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 09 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 12, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 12, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 13, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0a 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 13, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0a 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 14, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 14, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'beat', 'n': 3, 't': 1778056401157}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 15, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0b 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 15, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0b 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 16, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 16, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 17, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0c 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 17, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0c 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 18, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 18, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 19, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0d 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 19, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0d 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 20, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 20, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'beat', 'n': 4, 't': 1778056406158}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 21, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0e 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 21, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0e 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 22, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 22, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 23, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0f 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 23, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 0f 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 24, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 24, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'beat', 'n': 5, 't': 1778056411160}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 25, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 10 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 25, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 10 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 26, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 26, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 27, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 11 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 27, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 11 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 28, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 28, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 29, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 12 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 29, 'fd': 4, 'len': 16, 'preview': 'e9 01 00 00 01 00 00 00 08 00 00 00 12 00 00 00'}
+[send] {'tag': 'KSEND', 'fn': '__sendto', 'n': 30, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'KSEND', 'fn': 'sendto', 'n': 30, 'fd': 4, 'len': 473, 'preview': '3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54'}
+[send] {'tag': 'beat', 'n': 6, 't': 1778056416161}
+[send] {'tag': 'beat', 'n': 7, 't': 1778056421161}
+[send] {'tag': 'beat', 'n': 8, 't': 1778056426162}
+[send] {'tag': 'beat', 'n': 9, 't': 1778056431163}
+[send] {'tag': 'beat', 'n': 10, 't': 1778056436163}
+[send] {'tag': 'beat', 'n': 11, 't': 1778056441165}
+[send] {'tag': 'beat', 'n': 12, 't': 1778056446166}
+[send] {'tag': 'beat', 'n': 13, 't': 1778056451167}
+[send] {'tag': 'beat', 'n': 14, 't': 1778056456168}
+[send] {'tag': 'beat', 'n': 15, 't': 1778056461169}

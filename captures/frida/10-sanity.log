@@ -1,0 +1,6 @@
+MAIN Serato DJ Pro base=0x104c38000
+target string @ 0x10667d0c7, page=0x10667d000, off=0xc7
+total ADRP instructions: 0
+ADRPs targeting our string's page: 0
+first 6 sample ADRPs:
+-- DONE --

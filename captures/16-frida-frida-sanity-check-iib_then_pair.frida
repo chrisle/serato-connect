@@ -1,0 +1,12 @@
+MAIN Serato DJ Pro base=0x102654000
+HOOK SEND Authorize/Request @ 0xb791ac
+HOOK SEND Pair @ 0xb79260
+HOOK HANDLER Authorize/Response @ 0xb78cfc
+HOOK HANDLER StatusChanged @ 0xb78ea8
+HOOK REG-A Authorize/Response (b78f98) @ 0xb78f98
+HOOK REG-A StatusChanged (b78fc0) @ 0xb78fc0
+HOOK REG-B Authorize/Response (b79138) @ 0xb79138
+HOOK REG-B StatusChanged (b7923c) @ 0xb7923c
+
+=== HOOKS READY ===
+

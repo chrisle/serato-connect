@@ -1,0 +1,13 @@
+MAIN Serato DJ Pro base=0x104338000
+  read @ 0x18b2dd900
+  recvfrom @ 0x18b2e139c
+  recvmsg @ 0x18b2e17ac
+libsystem_kernel @ 0x18b2dc000
+HOOK handler [Authorize/Response] @ 0xb78cfc
+HOOK handler [StatusChanged] @ 0xb78ea8
+HOOK read @ 0x18b2dd900
+HOOK recvfrom @ 0x18b2e139c
+HOOK recvmsg @ 0x18b2e17ac
+
+=== HOOKS READY ===
+

@@ -1,0 +1,17 @@
+MAIN Serato DJ Pro base=0x102bb4000 size=103743488
+off=0x00001000 addr=0x102bb5000  ERR: invalid instruction
+off=0x00004000 addr=0x102bb8000  OK: udf #0
+off=0x00010000 addr=0x102bc4000  OK: udf #0
+off=0x00040000 addr=0x102bf4000  OK: bl #0x102bd0d64
+off=0x00100000 addr=0x102cb4000  OK: ldp x29, x30, [sp, #0x10]
+off=0x00400000 addr=0x102fb4000  OK: bl #0x102fb1d5c
+off=0x00800000 addr=0x1033b4000  ERR: invalid instruction
+off=0x01000000 addr=0x103bb4000  OK: mov w0, #1
+off=0x02000000 addr=0x104bb4000  ERR: invalid instruction
+off=0x04000000 addr=0x106bb4000  OK: eon x13, x25, x24, asr #49
+off=0x06000000 addr=0x108bb4000  ERR: invalid instruction
+
+--- Mach-O header ---
+magic=0xfeedfacf  ncmds=99
+Mach-O parse err: can't decode byte 0x00 in position 10
+-- DONE --

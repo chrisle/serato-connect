@@ -1,0 +1,22 @@
+[runner] attaching to pid=45221 script=scripts/frida-hook-comparator.js duration=95.0s runtime=qjs
+[send] {'tag': 'main', 'base': '0x102afc000', 'size': 103743488}
+[send] {'tag': 'bl_decoded', 'site': '0x103674d90', 'target': '0x103674c4c', 'target_off': '0xb78c4c'}
+[send] {'tag': 'disasm_comparator', 'body': 'MAIN+0x00b78c4c  sub      sp, sp, #0xa0\nMAIN+0x00b78c50  stp      x22, x21, [sp, #0x70]\nMAIN+0x00b78c54  stp      x20, x19, [sp, #0x80]\nMAIN+0x00b78c58  stp      x29, x30, [sp, #0x90]\nMAIN+0x00b78c5c  add      x29, sp, #0x90\nMAIN+0x00b78c60  mov      x19, x2\nMAIN+0x00b78c64  mov      x20, x1\nMAIN+0x00b78c68  mov      x21, x0\nMAIN+0x00b78c6c  adrp     x8, #0x108df1000\nMAIN+0x00b78c70  ldr      x8, [x8, #0x5c0]\nMAIN+0x00b78c74  ldr      x8, [x8]\nMAIN+0x00b78c78  stur     x8, [x29, #-0x28]\nMAIN+0x00b78c7c  mov      x0, sp\nMAIN+0x00b78c80  bl       #0x103cab138\nMAIN+0x00b78c84  mov      x0, sp\nMAIN+0x00b78c88  mov      x1, x21\nMAIN+0x00b78c8c  mov      w2, #0x10\nMAIN+0x00b78c90  bl       #0x103cab154\nMAIN+0x00b78c94  mov      x0, sp\nMAIN+0x00b78c98  mov      x1, x19\nMAIN+0x00b78c9c  mov      w2, #0x20\nMAIN+0x00b78ca0  bl       #0x103cab154\nMAIN+0x00b78ca4  mov      x0, sp\nMAIN+0x00b78ca8  sub      x1, x29, #0x38\nMAIN+0x00b78cac  bl       #0x103cabc8c\nMAIN+0x00b78cb0  ldp      x8, x9, [x29, #-0x38]\nMAIN+0x00b78cb4  ldp      x10, x11, [x20]\nMAIN+0x00b78cb8  eor      x8, x8, x10\nMAIN+0x00b78cbc  eor      x9, x9, x11\nMAIN+0x00b78cc0  orr      x8, x8, x9\nMAIN+0x00b78cc4  cmp      x8, #0\nMAIN+0x00b78cc8  cset     w0, eq\nMAIN+0x00b78ccc  ldur     x8, [x29, #-0x28]\nMAIN+0x00b78cd0  adrp     x9, #0x108df1000\nMAIN+0x00b78cd4  ldr      x9, [x9, #0x5c0]\nMAIN+0x00b78cd8  ldr      x9, [x9]\nMAIN+0x00b78cdc  cmp      x9, x8\nMAIN+0x00b78ce0  b.ne     #0x103674cf8\nMAIN+0x00b78ce4  ldp      x29, x30, [sp, #0x90]\nMAIN+0x00b78ce8  ldp      x20, x19, [sp, #0x80]\nMAIN+0x00b78cec  ldp      x22, x21, [sp, #0x70]\nMAIN+0x00b78cf0  add      sp, sp, #0xa0\nMAIN+0x00b78cf4  ret      '}
+[send] {'tag': 'hooked_comparator'}
+[send] {'tag': 'setup_done'}
+[runner] script loaded, hooks should be active
+[send] {'tag': 'beat', 'n': 1}
+[send] {'tag': 'beat', 'n': 2}
+[send] {'tag': 'beat', 'n': 3}
+[send] {'tag': 'beat', 'n': 4}
+[send] {'tag': 'beat', 'n': 5}
+[send] {'tag': 'beat', 'n': 6}
+[send] {'tag': 'beat', 'n': 7}
+[send] {'tag': 'beat', 'n': 8}
+[send] {'tag': 'beat', 'n': 9}
+[send] {'tag': 'beat', 'n': 10}
+[send] {'tag': 'beat', 'n': 11}
+[send] {'tag': 'beat', 'n': 12}
+[send] {'tag': 'beat', 'n': 13}
+[send] {'tag': 'beat', 'n': 14}
+[send] {'tag': 'beat', 'n': 15}

@@ -1,0 +1,15 @@
+MAIN Serato DJ Pro base=0x104900000
+
+== "/StreamMgmt/Authorize/Request" at 0x106345108
+   0 pointer hits
+
+== "/StreamMgmt/Authorize/Response" at 0x1063450c7
+   0 pointer hits
+
+== "/StreamMgmt/Pairing/Pair" at 0x10634512d
+   0 pointer hits
+
+== "/StreamMgmt/Pairing/StatusChanged" at 0x1063450e6
+   0 pointer hits
+
+-- DONE --

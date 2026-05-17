@@ -1,0 +1,12 @@
+[runner] attaching to pid=17649 script=scripts/frida-sanity-send.js duration=95.0s runtime=qjs
+Traceback (most recent call last):
+  File "/Users/chrisle/code/nowplaying3/packages/serato-connect/scripts/frida-runner.py", line 71, in <module>
+    main()
+    ~~~~^^
+  File "/Users/chrisle/code/nowplaying3/packages/serato-connect/scripts/frida-runner.py", line 32, in main
+    script.on("console", on_log)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrisle/Library/Python/3.14/lib/python/site-packages/frida/core.py", line 370, in on
+    self._impl.on(signal, callback)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ValueError: Script does not have a signal named 'console', it only has: 'message', 'destroyed'

@@ -1,0 +1,161 @@
+MAIN Serato DJ Pro base=0x102154000 size=103743488
+STR Authorize/Request addr=0x103b99108 page=0x103b99000 off-in-page=0x108
+STR Authorize/Response addr=0x103b990c7 page=0x103b99000 off-in-page=0xc7
+STR Pair addr=0x103b9912d page=0x103b99000 off-in-page=0x12d
+STR StatusChanged addr=0x103b990e6 page=0x103b99000 off-in-page=0xe6
+
+scanned=98.9MiB  ADRPs=480287  xrefs=9
+  0x102cccedc  off=0xb78edc  ADD k=48 -> Authorize/Response @ 0x103b990c7
+     -12: 0x102ccced0  bl #0x103305718
+     -8: 0x102ccced4  cbz x0, #0x102cccf08
+     -4: 0x102ccced8  mov x20, x0
+     +0: 0x102cccedc  adrp x1, #0x103b99000
+     +4: 0x102cccee0  add x1, x1, #0xb0
+     +8: 0x102cccee4  bl #0x103a81884
+     +12: 0x102cccee8  cbz w0, #0x102cccf10
+     +16: 0x102ccceec  adrp x1, #0x103b99000
+     +20: 0x102cccef0  add x1, x1, #0xb7
+     +24: 0x102cccef4  mov x0, x20
+     +28: 0x102cccef8  bl #0x103a81884
+     +32: 0x102cccefc  cmp w0, #0
+     +36: 0x102cccf00  cset w2, eq
+     +40: 0x102cccf04  b #0x102cccf14
+     +44: 0x102cccf08  mov w2, #0
+     +48: 0x102cccf0c  b #0x102cccf14
+  0x102ccceec  off=0xb78eec  ADD k=44 -> Authorize/Response @ 0x103b990c7
+     -12: 0x102cccee0  add x1, x1, #0xb0
+     -8: 0x102cccee4  bl #0x103a81884
+     -4: 0x102cccee8  cbz w0, #0x102cccf10
+     +0: 0x102ccceec  adrp x1, #0x103b99000
+     +4: 0x102cccef0  add x1, x1, #0xb7
+     +8: 0x102cccef4  mov x0, x20
+     +12: 0x102cccef8  bl #0x103a81884
+     +16: 0x102cccefc  cmp w0, #0
+     +20: 0x102cccf00  cset w2, eq
+     +24: 0x102cccf04  b #0x102cccf14
+     +28: 0x102cccf08  mov w2, #0
+     +32: 0x102cccf0c  b #0x102cccf14
+     +36: 0x102cccf10  mov w2, #2
+     +40: 0x102cccf14  ldr x8, [x19, #0xf8]
+     +44: 0x102cccf18  cbz x8, #0x102cccf28
+     +48: 0x102cccf1c  add x0, x19, #0xb8
+  0x102cccf98  off=0xb78f98  ADD k=1 -> Authorize/Response @ 0x103b990c7
+     -12: 0x102cccf8c  movi v0.2d, #0000000000000000
+     -8: 0x102cccf90  stp q0, q0, [x0, #0xc0]
+     -4: 0x102cccf94  strb wzr, [x0, #0xe0]
+     +0: 0x102cccf98  adrp x1, #0x103b99000
+     +4: 0x102cccf9c  add x1, x1, #0xc7
+     +8: 0x102cccfa0  adr x3, #0x102ccccfc
+     +12: 0x102cccfa4  nop
+     +16: 0x102cccfa8  mov w2, #0
+     +20: 0x102cccfac  mov x4, x0
+     +24: 0x102cccfb0  mov w5, #5
+     +28: 0x102cccfb4  bl #0x102ccb8e0
+     +32: 0x102cccfb8  ldr x8, [x19]
+     +36: 0x102cccfbc  ldr x8, [x8, #0x90]
+     +40: 0x102cccfc0  adrp x1, #0x103b99000
+     +44: 0x102cccfc4  add x1, x1, #0xe6
+     +48: 0x102cccfc8  adr x3, #0x102cccea8
+  0x102cccfc0  off=0xb78fc0  ADD k=1 -> StatusChanged @ 0x103b990e6
+     -12: 0x102cccfb4  bl #0x102ccb8e0
+     -8: 0x102cccfb8  ldr x8, [x19]
+     -4: 0x102cccfbc  ldr x8, [x8, #0x90]
+     +0: 0x102cccfc0  adrp x1, #0x103b99000
+     +4: 0x102cccfc4  add x1, x1, #0xe6
+     +8: 0x102cccfc8  adr x3, #0x102cccea8
+     +12: 0x102cccfcc  nop
+     +16: 0x102cccfd0  mov x0, x19
+     +20: 0x102cccfd4  mov w2, #1
+     +24: 0x102cccfd8  mov x4, x19
+     +28: 0x102cccfdc  mov w5, #0
+     +32: 0x102cccfe0  blr x8
+     +36: 0x102cccfe4  mov x0, x19
+     +40: 0x102cccfe8  ldp x29, x30, [sp, #0x20]
+     +44: 0x102cccfec  ldp x20, x19, [sp, #0x10]
+     +48: 0x102cccff0  ldp x22, x21, [sp], #0x30
+  0x102ccd138  off=0xb79138  ADD k=1 -> Authorize/Response @ 0x103b990c7
+     -12: 0x102ccd12c  bl #0x102ccd35c
+     -8: 0x102ccd130  ldr x8, [x19]
+     -4: 0x102ccd134  ldr x8, [x8, #0xa0]
+     +0: 0x102ccd138  adrp x1, #0x103b99000
+     +4: 0x102ccd13c  add x1, x1, #0xc7
+     +8: 0x102ccd140  adr x2, #0x102ccccfc
+     +12: 0x102ccd144  nop
+     +16: 0x102ccd148  mov x0, x19
+     +20: 0x102ccd14c  mov w3, #5
+     +24: 0x102ccd150  blr x8
+     +28: 0x102ccd154  mov x0, #0
+     +32: 0x102ccd158  bl #0x103a81a70
+     +36: 0x102ccd15c  bl #0x103a81818
+     +40: 0x102ccd160  bl #0x103a815b4
+     +44: 0x102ccd164  sxtw x8, w0
+     +48: 0x102ccd168  str x8, [sp, #0x28]
+  0x102ccd1ac  off=0xb791ac  ADD k=1 -> Authorize/Request @ 0x103b99108
+     -12: 0x102ccd1a0  ldr w10, [x19, #0x144]
+     -8: 0x102ccd1a4  stp x9, x10, [sp, #0x10]
+     -4: 0x102ccd1a8  mov w9, #0x10
+     +0: 0x102ccd1ac  adrp x1, #0x103b99000
+     +4: 0x102ccd1b0  add x1, x1, #0x108
+     +8: 0x102ccd1b4  stp x20, x9, [sp]
+     +12: 0x102ccd1b8  adrp x2, #0x103b99000
+     +16: 0x102ccd1bc  add x2, x2, #0x126
+     +20: 0x102ccd1c0  mov x0, x19
+     +24: 0x102ccd1c4  blr x8
+     +28: 0x102ccd1c8  ldur x8, [x29, #-0x28]
+     +32: 0x102ccd1cc  adrp x9, #0x108449000
+     +36: 0x102ccd1d0  ldr x9, [x9, #0x5c0]
+     +40: 0x102ccd1d4  ldr x9, [x9]
+     +44: 0x102ccd1d8  cmp x9, x8
+     +48: 0x102ccd1dc  b.ne #0x102ccd1f4
+  0x102ccd23c  off=0xb7923c  ADD k=1 -> StatusChanged @ 0x103b990e6
+     -12: 0x102ccd230  stp x4, x5, [x0, #0xf8]
+     -8: 0x102ccd234  ldr x8, [x0]
+     -4: 0x102ccd238  ldr x8, [x8, #0xa0]
+     +0: 0x102ccd23c  adrp x1, #0x103b99000
+     +4: 0x102ccd240  add x1, x1, #0xe6
+     +8: 0x102ccd244  adr x2, #0x102cccea8
+     +12: 0x102ccd248  nop
+     +16: 0x102ccd24c  mov w3, #5
+     +20: 0x102ccd250  blr x8
+     +24: 0x102ccd254  ldr x8, [x20]
+     +28: 0x102ccd258  ldr x8, [x8, #0x78]
+     +32: 0x102ccd25c  stp x19, x22, [sp, #8]
+     +36: 0x102ccd260  adrp x1, #0x103b99000
+     +40: 0x102ccd264  add x1, x1, #0x12d
+     +44: 0x102ccd268  str x21, [sp]
+     +48: 0x102ccd26c  adrp x2, #0x103b99000
+  0x102ccd260  off=0xb79260  ADD k=1 -> Pair @ 0x103b9912d
+     -12: 0x102ccd254  ldr x8, [x20]
+     -8: 0x102ccd258  ldr x8, [x8, #0x78]
+     -4: 0x102ccd25c  stp x19, x22, [sp, #8]
+     +0: 0x102ccd260  adrp x1, #0x103b99000
+     +4: 0x102ccd264  add x1, x1, #0x12d
+     +8: 0x102ccd268  str x21, [sp]
+     +12: 0x102ccd26c  adrp x2, #0x103b99000
+     +16: 0x102ccd270  add x2, x2, #0x146
+     +20: 0x102ccd274  mov x0, x20
+     +24: 0x102ccd278  blr x8
+     +28: 0x102ccd27c  cmp w23, #0
+     +32: 0x102ccd280  cset w0, ne
+     +36: 0x102ccd284  ldp x29, x30, [sp, #0x50]
+     +40: 0x102ccd288  ldp x20, x19, [sp, #0x40]
+     +44: 0x102ccd28c  ldp x22, x21, [sp, #0x30]
+     +48: 0x102ccd290  ldp x24, x23, [sp, #0x20]
+  0x10361f64c  off=0x14cb64c  ADD k=34 -> StatusChanged @ 0x103b990e6
+     -12: 0x10361f640  adrp x1, #0x103be7000
+     -8: 0x10361f644  add x1, x1, #0x214
+     -4: 0x10361f648  b #0x10361f81c
+     +0: 0x10361f64c  adrp x1, #0x103b99000
+     +4: 0x10361f650  add x1, x1, #0x816
+     +8: 0x10361f654  b #0x10361f81c
+     +12: 0x10361f658  adrp x1, #0x103be7000
+     +16: 0x10361f65c  add x1, x1, #0xd3
+     +20: 0x10361f660  b #0x10361f81c
+     +24: 0x10361f664  adrp x1, #0x103be7000
+     +28: 0x10361f668  add x1, x1, #0xda
+     +32: 0x10361f66c  b #0x10361f81c
+     +36: 0x10361f670  adrp x1, #0x103be7000
+     +40: 0x10361f674  add x1, x1, #0xdd
+     +44: 0x10361f678  b #0x10361f81c
+     +48: 0x10361f67c  adrp x1, #0x103be7000
+-- DONE --

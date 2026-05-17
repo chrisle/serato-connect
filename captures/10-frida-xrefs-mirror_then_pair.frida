@@ -1,0 +1,16 @@
+MAIN Serato DJ Pro base=0x100a70000 size=103743488
+
+=== xrefs found: 6 ===
+  SENDER   Authorize/Response   pc=0xb78f98  sym=0xb78f98 (0x100b78f98)
+  SENDER   StatusChanged        pc=0xb78fc0  sym=0xb78fc0 (0x100b78fc0)
+  REGISTER Authorize/Response   pc=0xb79138  handler=0xb78cfc  sym=0xb79138 (0x100b79138)
+  SENDER   Authorize/Request    pc=0xb791ac  sym=0xb791ac (0x100b791ac)
+  REGISTER StatusChanged        pc=0xb7923c  handler=0xb78ea8  sym=0xb7923c (0x100b7923c)
+  SENDER   Pair                 pc=0xb79260  sym=0xb79260 (0x100b79260)
+
+=== hooking 2 unique receive-handlers ===
+HOOK [RECV:Authorize/Response] @ 0xb78cfc
+HOOK [RECV:StatusChanged] @ 0xb78ea8
+
+=== HOOKS READY ===
+
