@@ -1,5 +1,10 @@
 # Change log
 
+## v1.2.2
+
+- ci: upgrade npm before publishing so OIDC trusted publishing works
+
+
 ## v1.2.1
 
 - ci: switch publish workflow to OIDC trusted publishing
