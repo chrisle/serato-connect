@@ -1,5 +1,10 @@
 # Change log
 
+## v1.2.1
+
+- ci: switch publish workflow to OIDC trusted publishing
+
+
 ## v1.2.0
 
 - fix(ci): publish no longer fails when several connect repos release together
