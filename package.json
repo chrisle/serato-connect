@@ -3,6 +3,14 @@
   "version": "1.2.0",
   "description": "Library to read Serato DJ history files and emit change events",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisle/serato-connect.git"
+  },
+  "homepage": "https://github.com/chrisle/serato-connect",
+  "bugs": {
+    "url": "https://github.com/chrisle/serato-connect/issues"
+  },
   "private": false,
   "type": "commonjs",
   "main": "dist/index.js",
