@@ -3,7 +3,7 @@
  * Serato 4.0 stores history in ~/Library/Application Support/Serato/Library/master.sqlite
  */
 
-import Database from 'better-sqlite3';
+import Database from 'better-sqlite3-multiple-ciphers';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
