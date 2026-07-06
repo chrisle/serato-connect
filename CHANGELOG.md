@@ -1,5 +1,10 @@
 # Change log
 
+## v1.2.3
+
+- refactor: use better-sqlite3-multiple-ciphers for Electron 43 compatibility
+
+
 ## v1.2.2
 
 - ci: upgrade npm before publishing so OIDC trusted publishing works
