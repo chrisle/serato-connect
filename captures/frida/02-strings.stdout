@@ -1,0 +1,40 @@
+MAIN=Serato DJ Pro  base=0x102c78000
+-- "/StreamMgmt/Authorize/Request" matches=1
+   0x1046bd108  off=0x1a45108  "(unreadable)"
+-- "/StreamMgmt/Authorize/Response" matches=1
+   0x1046bd0c7  off=0x1a450c7  "(unreadable)"
+-- "/StreamMgmt/Pairing/Pair" matches=1
+   0x1046bd12d  off=0x1a4512d  "(unreadable)"
+-- "/StreamMgmt/Pairing/StatusChanged" matches=1
+   0x1046bd0e6  off=0x1a450e6  "(unreadable)"
+-- "/Error/" matches=1
+   0x1046bcfe3  off=0x1a44fe3  "(unreadable)"
+-- "Malformed" matches=6
+   0x1046bd00d  off=0x1a4500d  "(unreadable)"
+   0x1046bd02d  off=0x1a4502d  "(unreadable)"
+   0x1046c19bf  off=0x1a499bf  "(unreadable)"
+   0x1047c459c  off=0x1b4c59c  "(unreadable)"
+   0x108de6139  off=0x616e139  "(unreadable)"
+   0x108de615b  off=0x616e15b  "(unreadable)"
+-- "osc::MalformedMessage" matches=1
+   0x1046bd008  off=0x1a45008  "(unreadable)"
+-- "readDataCallback" matches=1
+   0x1046bcfef  off=0x1a44fef  "(unreadable)"
+-- "Authorize" matches=103
+   0x1046bd0d3  off=0x1a450d3  "(unreadable)"
+   0x1046bd114  off=0x1a45114  "(unreadable)"
+   0x1046c33c7  off=0x1a4b3c7  "(unreadable)"
+   0x1046c33e9  off=0x1a4b3e9  "(unreadable)"
+   0x1046c34c1  off=0x1a4b4c1  "(unreadable)"
+   0x1046c34f3  off=0x1a4b4f3  "(unreadable)"
+-- "Pairing" matches=4
+   0x1046bd0f2  off=0x1a450f2  "(unreadable)"
+   0x1046bd139  off=0x1a45139  "(unreadable)"
+   0x1046bd159  off=0x1a45159  "(unreadable)"
+   0x1047cc727  off=0x1b54727  "PairingTypeEEvS7_JSB_SC_EEENS0_4listIJNS0_5valueIPS7_EENSH_IPS9_EENSH_ISC_EEEEEE"
+-- "%b%i%i" matches=1
+   0x1046bd126  off=0x1a45126  "(unreadable)"
+-- "%s%s%i" matches=1
+   0x1046bd146  off=0x1a45146  "(unreadable)"
+-- DONE --
+script done

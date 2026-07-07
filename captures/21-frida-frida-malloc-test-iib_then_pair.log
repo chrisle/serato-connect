@@ -1,0 +1,15 @@
+[     4.498ms] SERVER LISTENING on 0.0.0.0:53999
+[    18.888ms] mdns: publishing %s on port %d
+[    18.958ms] MDNS PUBLISHED instance="serato-capture @ chrislem4mac592.localdomain" port=53999 hostname=chrislem4mac592.localdomain
+[    18.979ms] --- WAITING FOR SERATO TO CONNECT ---
+[ 28868.622ms] CONN#1 OPEN from 192.168.1.14:59365
+[ 28869.405ms] CONN#1 <- raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 28869.712ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 28869.917ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 28869.974ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 28870.250ms] CONN#2 OPEN from 192.168.1.14:59366
+[ 28870.344ms] CONN#2 <- raw 84B  2f 53 74 72 65 61 6d 4d 67 6d 74 2f 41 75 74 68 6f 72 69 7a 65 2f 52 65 71 75 65 73 74 00 00 00 2c 62 69 69 00 00 00 00 00 00 00 10 37 21 c2 a9 69 1a 66 fa be c6 ef f5 fc e1 9c 69 00 00 00 01 00 00 00 01 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 28870.414ms] CONN#2 <- OSC  /StreamMgmt/Authorize/Request  [? i:1 i:1]
+[ 28870.433ms] CONN#2 STRATEGY=iib_then_pair PEER_UUID=np-mac-1 responding to Authorize/Request (delay=15000ms)
+[ 30020.622ms] RUN_BUDGET_MS=30000 reached — auto-shutdown
+[ 30020.803ms] SHUTDOWN

@@ -1,0 +1,11 @@
+MAIN Serato DJ Pro base=0x104afc000 size=103743488
+r-x ranges in main module: 1
+   0x104afc000  size=103743488
+STR Authorize/Response addr=0x1065410c7 page=0x106541000 off-in-page=0xc7
+STR Authorize/Request addr=0x106541108 page=0x106541000 off-in-page=0x108
+STR Pair addr=0x10654112d page=0x106541000 off-in-page=0x12d
+STR StatusChanged addr=0x1065410e6 page=0x106541000 off-in-page=0xe6
+
+--- scanning for ADRP+ADD/LDR x-refs ---
+scanned 98.9 MiB, found 0 xrefs
+-- DONE --

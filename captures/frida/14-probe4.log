@@ -1,0 +1,38 @@
+MAIN Serato DJ Pro base=0x1024f4000
+first 16 bytes: cf fa ed fe 0c 00 00 01 00 00 00 00 02 00 00 00
+first 4 u32:    feedfacf 0100000c 00000000 00000002
+readU32 at base:    0xfeedfacf
+readU32 at base+4:  0x0100000c
+
+--- first 100 instructions, starting at first valid ---
++0x0008  ip=0x1024f4008  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x000c  ip=0x1024f400c  u32_arr=0x00000002  readU32=0x00000002  asm=udf #2
++0x0010  ip=0x1024f4010  u32_arr=0x00000063  readU32=0x00000063  asm=udf #0x63
++0x0014  ip=0x1024f4014  u32_arr=0x00002a68  readU32=0x00002a68  asm=udf #0x2a68
++0x001c  ip=0x1024f401c  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0020  ip=0x1024f4020  u32_arr=0x00000019  readU32=0x00000019  asm=udf #0x19
++0x0024  ip=0x1024f4024  u32_arr=0x00000048  readU32=0x00000048  asm=udf #0x48
++0x002c  ip=0x1024f402c  u32_arr=0x455a4547  readU32=0x455a4547  asm=saddwt z7.h, z10.h, z26.b
++0x0030  ip=0x1024f4030  u32_arr=0x00004f52  readU32=0x00004f52  asm=udf #0x4f52
++0x0034  ip=0x1024f4034  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0038  ip=0x1024f4038  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x003c  ip=0x1024f403c  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0040  ip=0x1024f4040  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0044  ip=0x1024f4044  u32_arr=0x00000001  readU32=0x00000001  asm=udf #1
++0x0048  ip=0x1024f4048  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x004c  ip=0x1024f404c  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0050  ip=0x1024f4050  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0054  ip=0x1024f4054  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0058  ip=0x1024f4058  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x005c  ip=0x1024f405c  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0060  ip=0x1024f4060  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0064  ip=0x1024f4064  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x0068  ip=0x1024f4068  u32_arr=0x00000019  readU32=0x00000019  asm=udf #0x19
++0x006c  ip=0x1024f406c  u32_arr=0x000004f8  readU32=0x000004f8  asm=udf #0x4f8
++0x0070  ip=0x1024f4070  u32_arr=0x45545f5f  readU32=0x45545f5f  asm=usubwt z31.h, z26.h, z20.b
++0x0074  ip=0x1024f4074  u32_arr=0x00005458  readU32=0x00005458  asm=udf #0x5458
++0x0078  ip=0x1024f4078  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
++0x007c  ip=0x1024f407c  u32_arr=0x00000000  readU32=0x00000000  asm=udf #0
+
+--- searching for ADRP via Instruction.parse ---
+-- DONE --

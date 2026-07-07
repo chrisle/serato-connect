@@ -1,0 +1,24 @@
+[runner] attaching to pid=27957 script=scripts/frida-fatal-log.js duration=95.0s runtime=qjs
+[send] {'tag': 'main', 'name': 'Serato DJ Pro', 'base': '0x1046f0000'}
+[send] {'tag': 'hooked_caller', 'off': '0xb780b4'}
+[send] {'tag': 'setup_done'}
+[runner] script loaded, hooks should be active
+[send] {'tag': 'beat', 'n': 1, 't': 1778056595321}
+[send] {'tag': 'beat', 'n': 2, 't': 1778056600321}
+[send] {'tag': 'CALLER_enter', 'n': 1, 't': 1778056600723, 'off': '0xb780b4'}
+[send] {'tag': 'HANDLER_enter', 'n': 1, 't': 1778056600723}
+[send] {'tag': 'CALLER_enter', 'n': 2, 't': 1778056600774, 'off': '0xb780b4'}
+[send] {'tag': 'CALLER_leave', 'n': 2, 'dur': 0, 'retval': '0x59c00000'}
+[send] {'tag': 'beat', 'n': 3, 't': 1778056605322}
+[send] {'tag': 'beat', 'n': 4, 't': 1778056610322}
+[send] {'tag': 'beat', 'n': 5, 't': 1778056615323}
+[send] {'tag': 'beat', 'n': 6, 't': 1778056620324}
+[send] {'tag': 'beat', 'n': 7, 't': 1778056625326}
+[send] {'tag': 'beat', 'n': 8, 't': 1778056630327}
+[send] {'tag': 'beat', 'n': 9, 't': 1778056635327}
+[send] {'tag': 'beat', 'n': 10, 't': 1778056640328}
+[send] {'tag': 'beat', 'n': 11, 't': 1778056645329}
+[send] {'tag': 'beat', 'n': 12, 't': 1778056650331}
+[send] {'tag': 'beat', 'n': 13, 't': 1778056655332}
+[send] {'tag': 'beat', 'n': 14, 't': 1778056660333}
+[send] {'tag': 'beat', 'n': 15, 't': 1778056665334}

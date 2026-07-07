@@ -1,0 +1,10 @@
+MAIN Serato DJ Pro base=0x104570000 size=103743488
+readable ranges in module: 1
+  0x104570000  size=0x62f0000  prot=r-x  file=/Users/chrisle/tmp/SeratoDJPro.app/Contents/MacOS/Serato DJ Pro
+
+--- range 0x104570000 ---
+  0x104570000  parse error: invalid instruction
+
+mod.enumerateRanges('r-x'): 1
+  0x104570000 size=0x62f0000 prot=r-x
+-- DONE --

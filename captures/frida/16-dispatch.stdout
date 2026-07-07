@@ -1,0 +1,42 @@
+MAIN Serato DJ Pro base=0x100804000 size=103743488
+STR Authorize/Request addr=0x102249108 page=0x102249000 off-in-page=0x108
+STR Authorize/Response addr=0x1022490c7 page=0x102249000 off-in-page=0xc7
+STR Pair addr=0x10224912d page=0x102249000 off-in-page=0x12d
+STR StatusChanged addr=0x1022490e6 page=0x102249000 off-in-page=0xe6
+
+scanned=98.9MiB  ADRPs=480287  xrefs=2
+  0x10137d138  off=0xb79138  ADD k=30 -> Authorize/Request @ 0x102249108
+     -12: 0x10137d12c  bl #0x10137d35c
+     -8: 0x10137d130  ldr x8, [x19]
+     -4: 0x10137d134  ldr x8, [x8, #0xa0]
+     +0: 0x10137d138  adrp x1, #0x102249000
+     +4: 0x10137d13c  add x1, x1, #0xc7
+     +8: 0x10137d140  adr x2, #0x10137ccfc
+     +12: 0x10137d144  nop
+     +16: 0x10137d148  mov x0, x19
+     +20: 0x10137d14c  mov w3, #5
+     +24: 0x10137d150  blr x8
+     +28: 0x10137d154  mov x0, #0
+     +32: 0x10137d158  bl #0x102131a70
+     +36: 0x10137d15c  bl #0x102131818
+     +40: 0x10137d160  bl #0x1021315b4
+     +44: 0x10137d164  sxtw x8, w0
+     +48: 0x10137d168  str x8, [sp, #0x28]
+  0x10137d1ac  off=0xb791ac  ADD k=1 -> Authorize/Request @ 0x102249108
+     -12: 0x10137d1a0  ldr w10, [x19, #0x144]
+     -8: 0x10137d1a4  stp x9, x10, [sp, #0x10]
+     -4: 0x10137d1a8  mov w9, #0x10
+     +0: 0x10137d1ac  adrp x1, #0x102249000
+     +4: 0x10137d1b0  add x1, x1, #0x108
+     +8: 0x10137d1b4  stp x20, x9, [sp]
+     +12: 0x10137d1b8  adrp x2, #0x102249000
+     +16: 0x10137d1bc  add x2, x2, #0x126
+     +20: 0x10137d1c0  mov x0, x19
+     +24: 0x10137d1c4  blr x8
+     +28: 0x10137d1c8  ldur x8, [x29, #-0x28]
+     +32: 0x10137d1cc  adrp x9, #0x106af9000
+     +36: 0x10137d1d0  ldr x9, [x9, #0x5c0]
+     +40: 0x10137d1d4  ldr x9, [x9]
+     +44: 0x10137d1d8  cmp x9, x8
+     +48: 0x10137d1dc  b.ne #0x10137d1f4
+-- DONE --

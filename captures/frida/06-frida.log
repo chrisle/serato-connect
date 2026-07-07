@@ -1,0 +1,6 @@
+MAIN Serato DJ Pro base=0x102820000
+STR Authorize/Response @ 0x1042650c7
+STR readDataCallback   @ 0x104264fef
+STR Pairing/Pair       @ 0x10426512d
+TypeError: not a function
+    at <eval> (/Users/chrisle/code/nowplaying3/packages/serato-connect/scripts/frida-trace-osc.js:32)

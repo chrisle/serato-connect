@@ -1,0 +1,32 @@
+MAIN Serato DJ Pro base=0x1005ac000
+STR Authorize/Response @ 0x101ff10c7
+STR Authorize/Request  @ 0x101ff1108
+STR Pairing/Pair       @ 0x101ff112d
+HOOK __cxa_throw @ 0x18b2d62e0
+HOOK objc_exception_throw @ 0x18aee23c0
+HOOK write @ 0x18b2e0818
+HOOK writev @ 0x18b2e0b70
+HOOK send @ 0x18b1bd76c
+HOOK sendto @ 0x18b2e1370
+HOOK sendmsg @ 0x18b2e296c
+HOOK read @ 0x18b2dd900
+HOOK recvfrom @ 0x18b2e139c
+HOOK recv @ 0x18b1bd778
+HOOK recvmsg @ 0x18b2e17ac
+HOOK readv @ 0x18b2ebc28
+HOOK close @ 0x18b2dd8d4
+OBJC: looking for GCDAsyncSocket delegate methods...
+
+[close fd=50]
+OBJC interesting classes: CoreTelephonyClientRemoteAsyncProxy, _TtCVE10FoundationCSo12NSURLSession10AsyncBytesP33_1935C07EE287982D980AA89BB85ACEFA8_Storage, Network.SystemSocket, _TtCC7Network13NWActorSystem18RemoteCallActivity, _TtCC7Network19NWProtocolWebSocket8Metadata, _TtCC7Network19NWProtocolWebSocket7Options, Network.NWProtocolWebSocket, Distributed.DistributedRemoteActorReferenceExecutor, ProactiveSupport.AsyncFIFOQueue, PoirotSchematizer.ProtoSchemaStore, SiriTTSService.AsynchronousContext, _TtCF7Sharing21notify_async_sequenceFT4nameSS_GVs11AsyncStreamVs5Int32_L_5State, Sharing._SFEncodedDataAsyncSequence, IDSFoundation.IDSLinksQualityRepeatingAsyncTask, AVFoundation.AVAnyAsyncProperty, CoreML.MLModelTensorAsyncEvent, CoreML.IOSurfaceAsyncEvent, _TtC6CoreMLP33_E8DC9B772C73548EA5F31AD4BCEEE43A29AsyncComputeFunctionScheduler, CoreML.MetalAsyncEvent, ODIE.AsyncOperandState, _TtCV20ModelManagerServices16InferenceMonitor13AsyncIterator, GenerativeFunctionsInstrumentation.AsyncFIFOQueue, AXCoreUtilities.AXAsyncTimer, CloudKit.CKAsyncSerialQueue, _TtCC10CloudAsset16XPCMessageSenderP33_F083762E8AA85387E0266C830081286723AsyncSequenceDispatcher, _TtCV23AsyncAlgorithmsInternal17_AsyncBytesBuffer7Storage, _TtCV21UIIntelligenceSupport19IntelligenceElement12AsyncContent, Catalyst.CATAsyncGate, _TtCV7SwiftUI12RemoteScenes11SessionInfo, _TtCV7SwiftUI12RemoteScenes17SessionController
+
+=== HOOKS READY ===
+
+0x108da16e4 libcurl.4.dylib!Curl_ipv6works
+0x108d87200 libcurl.4.dylib!Curl_resolver_getaddrinfo
+0x108da1b08 libcurl.4.dylib!Curl_resolv
+0x108dd1cf8 libcurl.4.dylib!create_conn
+0x108dcf108 libcurl.4.dylib!Curl_connect
+0x108db6bb4 libcurl.4.dylib!multi_runsingle
+0x108db6804 libcurl.4.dylib!curl_multi_perform
+0x108d96c70 libcurl.4.dylib!curl_easy_perform

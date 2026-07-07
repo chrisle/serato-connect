@@ -1,0 +1,52 @@
+[runner] attaching to pid=20549 script=scripts/frida-sanity-send.js duration=95.0s runtime=qjs
+[send] {'tag': 'init', 't': 1778056225824, 'modules': 1130}
+[send] {'tag': 'main_module', 'name': 'Serato DJ Pro', 'base': '0x10066c000'}
+[send] {'tag': 'malloc_found', 'addr': '0x18b115ce8'}
+[send] {'tag': 'malloc_hooked'}
+[send] {'tag': 'handler_hooked', 'off': '0xb78cfc'}
+[send] {'tag': 'handler_prol_hooked', 'off': '0xb78c4c'}
+[send] {'tag': 'setup_done'}
+[runner] script loaded, hooks should be active
+[send] {'tag': 'malloc_hit', 'n': 1, 't': 1778056225842}
+[send] {'tag': 'malloc_hit', 'n': 100, 't': 1778056225892}
+[send] {'tag': 'beat', 'n': 1, 't': 1778056227828}
+[send] {'tag': 'beat', 'n': 2, 't': 1778056229830}
+[send] {'tag': 'beat', 'n': 3, 't': 1778056231831}
+[send] {'tag': 'malloc_hit', 'n': 10000, 't': 1778056232717}
+[send] {'tag': 'beat', 'n': 4, 't': 1778056233832}
+[send] {'tag': 'beat', 'n': 5, 't': 1778056235833}
+[send] {'tag': 'handler_hit', 'n': 1, 't': 1778056236507, 'x0': '0x32882f820', 'x1': '0x32882f7b0', 'x2': '0x16f9be7e0'}
+[send] {'tag': 'beat', 'n': 6, 't': 1778056237834}
+[send] {'tag': 'beat', 'n': 7, 't': 1778056239835}
+[send] {'tag': 'beat', 'n': 8, 't': 1778056241837}
+[send] {'tag': 'beat', 'n': 9, 't': 1778056243839}
+[send] {'tag': 'beat', 'n': 10, 't': 1778056245841}
+[send] {'tag': 'beat', 'n': 11, 't': 1778056247843}
+[send] {'tag': 'beat', 'n': 12, 't': 1778056249844}
+[send] {'tag': 'beat', 'n': 13, 't': 1778056251846}
+[send] {'tag': 'beat', 'n': 14, 't': 1778056253848}
+[send] {'tag': 'beat', 'n': 15, 't': 1778056255849}
+[send] {'tag': 'beat', 'n': 16, 't': 1778056257851}
+[send] {'tag': 'beat', 'n': 17, 't': 1778056259852}
+[send] {'tag': 'beat', 'n': 18, 't': 1778056261854}
+[send] {'tag': 'beat', 'n': 19, 't': 1778056263854}
+[send] {'tag': 'beat', 'n': 20, 't': 1778056265855}
+[send] {'tag': 'beat', 'n': 21, 't': 1778056267856}
+[send] {'tag': 'beat', 'n': 22, 't': 1778056269859}
+[send] {'tag': 'beat', 'n': 23, 't': 1778056271861}
+[send] {'tag': 'beat', 'n': 24, 't': 1778056273862}
+[send] {'tag': 'beat', 'n': 25, 't': 1778056275863}
+[send] {'tag': 'beat', 'n': 26, 't': 1778056277865}
+[send] {'tag': 'beat', 'n': 27, 't': 1778056279866}
+[send] {'tag': 'beat', 'n': 28, 't': 1778056281867}
+[send] {'tag': 'beat', 'n': 29, 't': 1778056283869}
+[send] {'tag': 'beat', 'n': 30, 't': 1778056285871}
+[send] {'tag': 'beat', 'n': 31, 't': 1778056287872}
+[send] {'tag': 'beat', 'n': 32, 't': 1778056289874}
+[send] {'tag': 'beat', 'n': 33, 't': 1778056291875}
+[send] {'tag': 'beat', 'n': 34, 't': 1778056293876}
+[send] {'tag': 'beat', 'n': 35, 't': 1778056295878}
+[send] {'tag': 'beat', 'n': 36, 't': 1778056297879}
+[send] {'tag': 'beat', 'n': 37, 't': 1778056299881}
+[send] {'tag': 'beat', 'n': 38, 't': 1778056301882}
+[send] {'tag': 'beat', 'n': 39, 't': 1778056303884}

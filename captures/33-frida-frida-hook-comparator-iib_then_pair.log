@@ -1,0 +1,55 @@
+[     3.852ms] SERVER LISTENING on 0.0.0.0:53999
+[    11.800ms] mdns: publishing %s on port %d
+[    11.903ms] MDNS PUBLISHED instance="serato-capture @ chrislem4mac592.localdomain" port=53999 hostname=chrislem4mac592.localdomain
+[    11.994ms] --- WAITING FOR SERATO TO CONNECT ---
+[  7840.476ms] CONN#1 OPEN from 192.168.1.14:60154
+[  7840.936ms] CONN#1 <- raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  7841.145ms] CONN#1 <- OSC  /Ping  [(no args)]
+[  7841.283ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  7841.304ms] CONN#1 -> OSC  /Ping  [(no args)]
+[  7841.503ms] CONN#2 OPEN from 192.168.1.14:60155
+[  7841.571ms] CONN#2 <- raw 84B  2f 53 74 72 65 61 6d 4d 67 6d 74 2f 41 75 74 68 6f 72 69 7a 65 2f 52 65 71 75 65 73 74 00 00 00 2c 62 69 69 00 00 00 00 00 00 00 10 85 64 fb c6 ef 91 dd 2b 7d 3d 20 99 98 11 8e 74 00 00 00 01 00 00 00 01 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  7841.625ms] CONN#2 <- OSC  /StreamMgmt/Authorize/Request  [? i:1 i:1]
+[  7841.642ms] CONN#2 STRATEGY=iib_then_pair PEER_UUID=np-mac-1 responding to Authorize/Request (delay=15000ms)
+[ 17843.860ms] CONN#1 <- raw 12B  2f 50 69 6e 67 00 00 00 2c 00 00 00
+[ 17844.298ms] CONN#1 <- raw 16B  4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 17844.369ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 17844.419ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 17844.432ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 22844.103ms] CONN#2 -> raw 84B  2f 53 74 72 65 61 6d 4d 67 6d 74 2f 41 75 74 68 6f 72 69 7a 65 2f 52 65 73 70 6f 6e 73 65 00 00 2c 69 69 62 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00 10 85 64 fb c6 ef 91 dd 2b 7d 3d 20 99 98 11 8e 74 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 22844.246ms] CONN#2 -> OSC  /StreamMgmt/Authorize/Response  [i:1 i:1 ?]
+[ 22896.780ms] CONN#2 -> raw 80B  2f 53 74 72 65 61 6d 4d 67 6d 74 2f 50 61 69 72 69 6e 67 2f 50 61 69 72 00 00 00 00 2c 73 73 69 00 00 00 00 4e 6f 77 20 50 6c 61 79 69 6e 67 00 6e 70 2d 6d 61 63 2d 31 00 00 00 00 00 00 00 01 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 22896.961ms] CONN#2 -> OSC  /StreamMgmt/Pairing/Pair  [s:"Now Playing" s:"np-mac-1" i:1]
+[ 27850.722ms] CONN#1 <- raw 12B  2f 50 69 6e 67 00 00 00 2c 00 00 00
+[ 27850.966ms] CONN#1 <- raw 16B  4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 27851.025ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 27851.067ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 27851.083ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 37858.993ms] CONN#1 <- raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 37859.213ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 37859.281ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 37859.302ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 47859.346ms] CONN#1 <- raw 12B  2f 50 69 6e 67 00 00 00 2c 00 00 00
+[ 47859.540ms] CONN#1 <- raw 16B  4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 47859.607ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 47859.644ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 47859.669ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 57868.611ms] CONN#1 <- raw 12B  2f 50 69 6e 67 00 00 00 2c 00 00 00
+[ 57868.771ms] CONN#1 <- raw 16B  4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 57868.806ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 57868.832ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 57868.841ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 67876.155ms] CONN#1 <- raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 67876.313ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 67876.358ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 67876.371ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 77885.950ms] CONN#1 <- raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 77886.089ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 77886.148ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 77886.161ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 87896.004ms] CONN#1 <- raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 87896.135ms] CONN#1 <- OSC  /Ping  [(no args)]
+[ 87896.175ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[ 87896.189ms] CONN#1 -> OSC  /Ping  [(no args)]
+[ 90013.997ms] RUN_BUDGET_MS=90000 reached — auto-shutdown
+[ 90014.164ms] SHUTDOWN

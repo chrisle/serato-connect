@@ -1,0 +1,19 @@
+[runner] attaching to pid=37332 script=scripts/frida-trace-handler.js duration=95.0s runtime=qjs
+[send] {'tag': 'main', 'base': '0x10439c000'}
+[send] {'tag': 'setup_done'}
+[runner] script loaded, hooks should be active
+[send] {'tag': 'beat', 'n': 1, 't': 1778057047873}
+[send] {'tag': 'beat', 'n': 2, 't': 1778057052873}
+[send] {'tag': 'beat', 'n': 3, 't': 1778057057874}
+[send] {'tag': 'beat', 'n': 4, 't': 1778057062875}
+[send] {'tag': 'beat', 'n': 5, 't': 1778057067876}
+[send] {'tag': 'beat', 'n': 6, 't': 1778057072878}
+[send] {'tag': 'beat', 'n': 7, 't': 1778057077879}
+[send] {'tag': 'beat', 'n': 8, 't': 1778057082881}
+[send] {'tag': 'beat', 'n': 9, 't': 1778057087883}
+[send] {'tag': 'beat', 'n': 10, 't': 1778057092885}
+[send] {'tag': 'beat', 'n': 11, 't': 1778057097886}
+[send] {'tag': 'beat', 'n': 12, 't': 1778057102888}
+[send] {'tag': 'beat', 'n': 13, 't': 1778057107890}
+[send] {'tag': 'beat', 'n': 14, 't': 1778057112892}
+[send] {'tag': 'beat', 'n': 15, 't': 1778057117893}

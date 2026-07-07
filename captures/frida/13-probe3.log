@@ -1,0 +1,7 @@
+MAIN Serato DJ Pro base=0x102aa0000 size=103743488
+r-x ranges: 1
+  0x102aa0000 size=0x62f0000
+pages attempted=25328 read=25328 null=0 err=0
+ADRP=0 ADR=184473
+first ADRPs:
+-- DONE --

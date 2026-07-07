@@ -1,0 +1,21 @@
+[runner] attaching to pid=39870 script=scripts/frida-handler-state.js duration=95.0s runtime=qjs
+[send] {'tag': 'main', 'base': '0x104f40000'}
+[send] {'tag': 'hooked'}
+[send] {'tag': 'setup_done'}
+[runner] script loaded, hooks should be active
+[send] {'tag': 'beat', 'n': 1}
+[send] {'tag': 'STATE', 'n': 1, 't': 1778057179063, 'list_start': '0x60000bec6b00', 'list_end': '0x60000bec6b40', 'list_count': 2, 'entries': [{'i': 0, 'off': 0, 'bytes': 'd2 5d b2 61 a4 41 1b c1 f3 78 8f 57 72 3b 89 77 c5 41 a4 b6 19 b9 4a 9a 8b 45 c4 6f 85 11 c2 f8'}, {'i': 1, 'off': 32, 'bytes': '5e 0a c1 b1 20 68 4f f3 b3 5c 45 32 b8 6b da 9a a4 e0 cd 4b 59 09 43 05 b7 24 56 79 24 aa d7 c5'}], 'x2_at_8': '0x6000001bc211', 'x2_at_18': '0x6000001bc218', 'x2_dump': 'f0 c1 1b 00 00 60 00 00 11 c2 1b 00 00 60 00 00 14 c2 1b 00 00 60 00 00 18 c2 1b 00 00 60 00 00 f0 c1 1b 00 00 60 00 00 44 00 00 00 00 60 00 00 c0 c6 a5 1a 00 60 00 00 f0 c1 1b 00 00 60 00 00', 'x19': '0x165358380', 'x19_0xb8': '0x10b2c2c28', 'x19_0xe8': '0x105b74324', 'x19_0xf0': '0x600025aaf2a0', 'x19_0x108_dump': '54 36 00 f0 5f 2d 66 e4 14 84 69 f6 20 87 3b b8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00'}
+[send] {'tag': 'beat', 'n': 2}
+[send] {'tag': 'beat', 'n': 3}
+[send] {'tag': 'beat', 'n': 4}
+[send] {'tag': 'beat', 'n': 5}
+[send] {'tag': 'beat', 'n': 6}
+[send] {'tag': 'beat', 'n': 7}
+[send] {'tag': 'beat', 'n': 8}
+[send] {'tag': 'beat', 'n': 9}
+[send] {'tag': 'beat', 'n': 10}
+[send] {'tag': 'beat', 'n': 11}
+[send] {'tag': 'beat', 'n': 12}
+[send] {'tag': 'beat', 'n': 13}
+[send] {'tag': 'beat', 'n': 14}
+[send] {'tag': 'beat', 'n': 15}

@@ -1,0 +1,19 @@
+[     3.962ms] SERVER LISTENING on 0.0.0.0:53999
+[    11.898ms] mdns: publishing %s on port %d
+[    11.963ms] MDNS PUBLISHED instance="serato-capture @ chrislem4mac592.localdomain" port=53999 hostname=chrislem4mac592.localdomain
+[    11.986ms] --- WAITING FOR SERATO TO CONNECT ---
+[  8792.124ms] CONN#1 OPEN from 192.168.1.14:58624
+[  8792.867ms] CONN#1 <- raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  8793.080ms] CONN#1 <- OSC  /Ping  [(no args)]
+[  8793.250ms] CONN#1 -> raw 28B  2f 50 69 6e 67 00 00 00 2c 00 00 00 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  8793.276ms] CONN#1 -> OSC  /Ping  [(no args)]
+[  8793.566ms] CONN#2 OPEN from 192.168.1.14:58625
+[  8793.643ms] CONN#2 <- raw 84B  2f 53 74 72 65 61 6d 4d 67 6d 74 2f 41 75 74 68 6f 72 69 7a 65 2f 52 65 71 75 65 73 74 00 00 00 2c 62 69 69 00 00 00 00 00 00 00 10 17 68 96 af 09 d2 85 76 0a f9 63 49 bf e8 ba 85 00 00 00 01 00 00 00 01 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  8793.703ms] CONN#2 <- OSC  /StreamMgmt/Authorize/Request  [? i:1 i:1]
+[  8793.719ms] CONN#2 STRATEGY=iib_then_pair PEER_UUID=np-mac-1 responding to Authorize/Request
+[  8793.776ms] CONN#2 -> raw 84B  2f 53 74 72 65 61 6d 4d 67 6d 74 2f 41 75 74 68 6f 72 69 7a 65 2f 52 65 73 70 6f 6e 73 65 00 00 2c 69 69 62 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00 10 17 68 96 af 09 d2 85 76 0a f9 63 49 bf e8 ba 85 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  8793.787ms] CONN#2 -> OSC  /StreamMgmt/Authorize/Response  [i:1 i:1 ?]
+[  8845.347ms] CONN#2 -> raw 80B  2f 53 74 72 65 61 6d 4d 67 6d 74 2f 50 61 69 72 69 6e 67 2f 50 61 69 72 00 00 00 00 2c 73 73 69 00 00 00 00 4e 6f 77 20 50 6c 61 79 69 6e 67 00 6e 70 2d 6d 61 63 2d 31 00 00 00 00 00 00 00 01 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
+[  8845.432ms] CONN#2 -> OSC  /StreamMgmt/Pairing/Pair  [s:"Now Playing" s:"np-mac-1" i:1]
+[ 15013.242ms] RUN_BUDGET_MS=15000 reached — auto-shutdown
+[ 15013.802ms] SHUTDOWN
