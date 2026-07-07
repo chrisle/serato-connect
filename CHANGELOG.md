@@ -1,5 +1,19 @@
 # Change log
 
+## v1.3.0
+
+- chore: save Serato Remote protocol reverse-engineering work
+- test: stub process.platform so version-detection tests pass on Linux CI
+- docs: update Serato Remote protocol notes from live capture
+- refactor: switch TCP framing from length-prefix to 16-byte sentinel
+- feat: add OSC blob argument type to support Serato handshake
+- docs: document the SeratoRemoteClient network mode in the README
+- chore: expose remote-protocol API and add bonjour-service dep
+- feat: add SeratoRemoteClient for the OSC-over-TCP Serato Remote protocol
+- feat: add OSC 1.1 encoder and length-prefix TCP framer
+- docs: add Serato Remote protocol reverse-engineering notes
+
+
 ## v1.2.3
 
 - refactor: use better-sqlite3-multiple-ciphers for Electron 43 compatibility
