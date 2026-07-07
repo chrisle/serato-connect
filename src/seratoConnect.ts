@@ -769,10 +769,18 @@ export class SeratoConnect extends (EventEmitter as new () => TypedEmitter) {
   /**
    * Create a unique key for a track to detect changes.
    * Returns null for null tracks.
+   *
+   * The `played` flag is part of the key: Serato flips it from false→true in
+   * place (same artist/title/startTime) once a loaded track passes its
+   * play-count threshold. Consumers route the two states differently — a
+   * loaded-only deck shows in the DJ interface, a played deck emits to the
+   * overlay — so the load→play transition must count as a change and re-emit
+   * `deckChange`. Excluding `played` here swallowed that second event and left
+   * the overlay empty for the whole set (NP3-283).
    */
   private getTrackKey(track: SeratoHistorySong | null): string | null {
     if (!track) return null;
-    return `${track.artist}|${track.title}|${track.startTime?.getTime() || 0}`;
+    return `${track.artist}|${track.title}|${track.startTime?.getTime() || 0}|${track.played ? 1 : 0}`;
   }
 
   // ============================================================================

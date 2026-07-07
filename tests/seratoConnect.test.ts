@@ -556,6 +556,56 @@ describe('SeratoConnect', () => {
       connect.stop();
     });
 
+    it('re-emits deckChange when a loaded track flips to played (NP3-283)', async () => {
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([])
+      );
+
+      const connect = new SeratoConnect({ seratoPath, pollIntervalMs: 50 });
+      const deckChanges: SeratoDeckChangePayload[] = [];
+      connect.on('deckChange', (payload) => {
+        deckChanges.push(payload);
+      });
+
+      await connect.start();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Serato writes the history row on load with the same start time it keeps
+      // once playback begins, so the key must stay stable across the flip.
+      const startTime = new Date();
+
+      // 1. Track loaded but not yet played (DJ-interface only).
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([
+          { title: 'Track 1', artist: 'Artist 1', filePath: '/track1.mp3', deck: 1, startTime, played: false },
+        ])
+      );
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const loadedChange = deckChanges.find((d) => d.deckId === 1 && d.track !== null);
+      expect(loadedChange).toBeDefined();
+      expect(loadedChange!.track!.played).toBe(false);
+
+      // 2. Serato flips `played` in place — same artist/title/startTime, still on deck.
+      deckChanges.length = 0;
+      await fs.promises.writeFile(
+        path.join(seratoPath, 'History', 'Sessions', '1.session'),
+        createSessionBuffer([
+          { title: 'Track 1', artist: 'Artist 1', filePath: '/track1.mp3', deck: 1, startTime, played: true },
+        ])
+      );
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // The load→play transition must re-emit so the overlay gets the now-playing track.
+      const playedChange = deckChanges.find((d) => d.deckId === 1 && d.track?.played === true);
+      expect(playedChange).toBeDefined();
+      expect(playedChange!.track!.title).toBe('Track 1');
+
+      connect.stop();
+    });
+
     it('emits deckChange when track is ejected from a deck', async () => {
       // Start with a track loaded
       const initialSongs = [
