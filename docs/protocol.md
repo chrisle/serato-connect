@@ -34,8 +34,8 @@ external lighting controllers.
 
 Standard OSC 1.1 (Serato uses **oscpack** internally — confirmed by
 characteristic `oscpack` error strings such as `Malformed Error Recieved`,
-`invalid packet size`, and `element size must be multiple of four`
-embedded in the binary). Each message is a 4-byte-aligned blob containing
+`invalid packet size`, and `element size must be multiple of four` embedded in
+the binary). Each message is a 4-byte-aligned blob containing
 
 1. The address pattern (null-terminated, padded to 4-byte boundary)
 2. The type-tag string starting with `,` (e.g. `,if`, `,is`, `,ifff`, `,bii`)
@@ -43,21 +43,28 @@ embedded in the binary). Each message is a 4-byte-aligned blob containing
 
 Type tags used by this protocol:
 
-| Tag | Type | Used by |
-|---|---|---|
-| `i` | int32 | deck index, capability flag, status flags |
-| `f` | float32 | most numeric values (positions, faders, BPM, booleans-as-float) |
-| `s` | string | track title, artist, file path, peer name/UUID, status enum |
-| `b` | blob (4-byte length prefix + raw bytes, padded to 4-byte) | session token in `/StreamMgmt/Authorize/Request` |
+| Tag | Type                                                      | Used by                                                         |
+| --- | --------------------------------------------------------- | --------------------------------------------------------------- |
+| `i` | int32                                                     | deck index, capability flag, status flags                       |
+| `f` | float32                                                   | most numeric values (positions, faders, BPM, booleans-as-float) |
+| `s` | string                                                    | track title, artist, file path, peer name/UUID, status enum     |
+| `b` | blob (4-byte length prefix + raw bytes, padded to 4-byte) | session token in `/StreamMgmt/Authorize/Request`                |
 
-### 1.2 TCP framing — bare OSC + 16-byte sentinel
+### 1.2 TCP framing — OSC packet + 16-byte sentinel
 
-Each frame on the wire is one bare OSC packet (no length prefix) followed
-by a constant 16-byte sentinel:
+Each frame on the wire is one OSC **packet** followed by a constant 16-byte
+sentinel:
 
 ```
-<bare OSC packet>  <16-byte SENTINEL>
+<OSC packet>  <16-byte SENTINEL>
 ```
+
+An "OSC packet" is **either** a plain OSC message (`/address` + type-tag + args)
+**or** an OSC bundle (`#bundle` + 8-byte time-tag + a sequence of
+4-byte-size-prefixed elements). Serato uses plain messages for the handshake
+(`Authorize`, `Pairing`) and **bundles for the `/Status/…` stream** — see
+[§4](#4-status-messages). It also sends **argless** messages (an address with an
+empty or absent type-tag section, valid OSC 1.0) during pairing.
 
 The sentinel is the same 16 bytes after every frame:
 
@@ -65,17 +72,22 @@ The sentinel is the same 16 bytes after every frame:
 4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70
 ```
 
-Verified live against Serato DJ Pro 3.3.5.29 (2026-05-05). The sentinel
-appears as a hardcoded constant in the Serato binary near the
-`serato::connection::USBMuxDNetworkStream` typeinfo and is consistent with
-how `CocoaAsyncSocket`'s `readDataToData:` framing works (read until you
-see this delimiter).
+Verified live against Serato DJ Pro 3.3.5.29. The sentinel appears as a
+hardcoded constant in the Serato binary near the
+`serato::connection::USBMuxDNetworkStream` typeinfo and matches how
+`CocoaAsyncSocket`'s `readDataToData:` framing works (read until you see this
+delimiter).
 
-A reader must be tolerant of TCP boundary effects: the OSC packet half and
-the sentinel half can arrive split across multiple `read()` calls or
-coalesced into one. Parse the OSC packet by its self-describing length
-(address + type-tag + typed args), then verify and consume the 16 bytes
-that follow.
+**Reading strategy: split on the sentinel, not by packet length.** A bundle's
+total length is _not_ self-describing at the top level (there is no element
+count or overall size header — it ends only where the sentinel begins), so a
+reader cannot compute the frame length from the packet structure alone. Instead,
+scan for the 16-byte sentinel to delimit each frame, then decode the preceding
+packet — expanding a `#bundle` into its contained messages, and treating a
+missing type-tag as zero args. A reader must also tolerate TCP boundary effects:
+the packet and the sentinel can arrive split across multiple `read()` calls or
+coalesced into one. (This is what `serato-connect`'s `FrameReader` +
+`decodeOscPacket` do.)
 
 ---
 
@@ -83,25 +95,24 @@ that follow.
 
 ### 2.1 Bonjour service
 
-| Field | Value |
-|---|---|
-| Service type | `_SeratoIOSRemote._tcp` |
-| Domain | `local.` |
-| Port | dynamic; published in the SRV record |
-| TXT records | **empty** — no key/value pairs are published. Serato accepts a bare advert. Any version negotiation must occur in the OSC handshake. |
+| Field         | Value                                                                                                                                                                |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Service type  | `_SeratoIOSRemote._tcp`                                                                                                                                              |
+| Domain        | `local.`                                                                                                                                                             |
+| Port          | dynamic; published in the SRV record                                                                                                                                 |
+| TXT records   | **empty** — no key/value pairs are published. Serato accepts a bare advert. Any version negotiation must occur in the OSC handshake.                                 |
 | Instance name | `<peer name> @ <hostname>` (e.g. `MyApp @ studio.local`) — the literal `@` and surrounding spaces appear to be convention; uniqueness is provided by hostname suffix |
 
 ### 2.2 Roles
 
 The "**remote**" endpoint (originally the Serato Remote iOS app; in this
-library, an instance of `serato-connect`) **publishes** the Bonjour service
-and accepts inbound TCP connections.
+library, an instance of `serato-connect`) **publishes** the Bonjour service and
+accepts inbound TCP connections.
 
 **Serato DJ Pro itself acts as the client** — it browses for
-`_SeratoIOSRemote._tcp`, and when a remote advertises, Serato connects to
-it and streams its state outward. This is the inverse of what the names
-suggest: the DJ application reaches out to the remote, not the other way
-round.
+`_SeratoIOSRemote._tcp`, and when a remote advertises, Serato connects to it and
+streams its state outward. This is the inverse of what the names suggest: the DJ
+application reaches out to the remote, not the other way round.
 
 This means a `serato-connect` realtime client must:
 
@@ -130,114 +141,212 @@ remote (publisher / TCP server)            Serato DJ Pro (client)
 
 Serato opens **two** TCP connections to the published port simultaneously
 (observed: source ports `:52977` and `:52978` both connecting to the same
-`:52976` listener). Verified (2026-05-05) the two connections have
-distinct roles:
+`:52976` listener). Verified (2026-05-05) the two connections have distinct
+roles:
 
-| Conn | Role | Traffic observed |
-|---|---|---|
-| #1 (first opened) | **Heartbeat** | only `/Ping` exchanges, every ~10 s. Likely the `BonjourServiceDiscovery` channel — the binary contains references separating ping handling from `StreamMgmt` |
-| #2 (second opened) | **Control** | `/StreamMgmt/Authorize/Request`, `/StreamMgmt/Pairing/*`, and (after pairing) `/Register/...` and `/Status/...` flow here |
+| Conn               | Role          | Traffic observed                                                                                                                                              |
+| ------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #1 (first opened)  | **Heartbeat** | only `/Ping` exchanges, every ~10 s. Likely the `BonjourServiceDiscovery` channel — the binary contains references separating ping handling from `StreamMgmt` |
+| #2 (second opened) | **Control**   | `/StreamMgmt/Authorize/Request`, `/StreamMgmt/Pairing/*`, and (after pairing) `/Register/...` and `/Status/...` flow here                                     |
 
 A `serato-connect` server implementation should accept multiple inbound
-connections from the same peer and treat each as an independent OSC
-stream (each with its own framing state). `/Ping` arrives on conn #1 only
-in the captures so far; the implementation should still respond to it on
-whichever connection it arrives on.
+connections from the same peer and treat each as an independent OSC stream (each
+with its own framing state). `/Ping` arrives on conn #1 only in the captures so
+far; the implementation should still respond to it on whichever connection it
+arrives on.
 
 ---
 
 ## 3. Connection lifecycle
 
-> **Note on direction labels.** Below, "Serato" = the DJ application (TCP
-> client) and "remote" = the mDNS publisher / TCP server. The
-> initiating side of each handshake message is **[unverified]** — to be
-> confirmed when a real session is captured.
+"Serato" = the DJ application (TCP **client**); "remote" = the mDNS publisher /
+TCP **server** (`serato-connect`). Serato opens **two** parallel TCP
+connections: #1 carries only the `/Ping` heartbeat; #2 carries the auth → pair →
+status flow. The sequence below is **verified live end-to-end** (Serato DJ Pro
+3.3.5.29, 2026-07-27).
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant R as serato-connect<br/>(mDNS publisher / TCP server)
+    participant S as Serato DJ Pro<br/>(TCP client)
+
+    Note over R: publish _SeratoIOSRemote._tcp<br/>(empty TXT) on chosen port
+    R-->>S: mDNS announce
+    Note over S: browses, resolves SRV
+
+    rect rgb(30,60,90)
+    Note over R,S: Conn #1 — heartbeat
+    S->>R: TCP connect
+    loop every ~10 s
+        S->>R: /Ping (argless)
+        R->>S: /Ping (echo)
+    end
+    end
+
+    rect rgb(40,70,50)
+    Note over R,S: Conn #2 — control
+    S->>R: TCP connect
+
+    Note over S: generate 16-byte nonce
+    S->>R: /StreamMgmt/Authorize/Request  ,bii<br/>(nonce, 1, 1)
+    Note over R: digest = MD5(nonce ‖ secret)
+    R->>S: /StreamMgmt/Authorize/Response  ,ssb<br/>(peerName, peerUuid, digest[16])
+    Note over S: verify digest == MD5(nonce ‖ secret)<br/>for either hardcoded secret
+
+    S->>R: /StreamMgmt/Pairing/Pair  ,ssi<br/>("SDJ @ host", "Serato DJ", isActive=0)
+    R->>S: /StreamMgmt/Pairing/Pair  ,ssi<br/>(peerName, peerUuid, isActive=1)
+
+    loop per topic
+        R->>S: /Register/Status/&lt;topic&gt;
+    end
+
+    loop live
+        S->>R: #bundle { /Status/Deck/Song/Title ,is,<br/>/Status/Deck/Playhead ,ifff, … }
+    end
+
+    opt teardown
+        R->>S: /StreamMgmt/Pairing/UnPair
+        S-->>R: TCP FIN
+    end
+    end
 ```
-remote (server)                         Serato (client)
-  │                                       │
-  │  ◀──────── TCP accept ─────────────── │
-  │                                       │
-  │  ◀── /StreamMgmt/Authorize/Request ── │   [unverified direction]
-  │  ── /StreamMgmt/Authorize/Response ─▶ │
-  │                                       │
-  │  ◀── /StreamMgmt/Pairing/Pair ─────── │   [unverified direction]
-  │  ── /StreamMgmt/Pairing/StatusChanged ▶
-  │                                       │
-  │  ◀── /Register/Status/<topic> (×N) ──│   [unverified direction]
-  │                                       │
-  │  ◀── /Status/<topic> (continuous) ── │   stream begins
-  │  ◀── /Status/<topic> ───────────────│
-  │  ◀── /Status/<topic> ───────────────│
-  │                                       │
-  │  ─── /Ping ─────────────────────────▶│   heartbeat (cadence: [unknown])
-  │  ◀── /Ping ─────────────────────────│
-  │                                       │
-  │  ── /StreamMgmt/Pairing/UnPair ────▶ │
-  │                                       │
-  │  ◀── TCP FIN ──────────────────────│
-```
+
+Notes on the flow:
+
+- **Auth (5–6)** is the crux: the response is `,ssb` carrying
+  `MD5(nonce ‖ secret)`. A wrong shape or digest makes Serato go silent on conn
+  #2 — see [§3.1](#31-authorization).
+- **Mutual Pair (7–8):** Serato sends `isActive=0` first; the remote's
+  `isActive=1` reply is what actually opens the stream — see
+  [§3.2](#32-pairing).
+- **Status (10)** arrives as OSC `#bundle` packets, each still followed by the
+  16-byte frame sentinel — see [§4](#4-status-messages).
 
 ### 3.1 Authorization
 
-| Path | Type tag | Args | Purpose |
-|---|---|---|---|
-| `/StreamMgmt/Authorize/Request` | `,bii` | `(sessionToken: blob[16], ?: i, ?: i)` | Sent by Serato → remote immediately on connect #2. The blob is a 16-byte session token (likely a UUID); both ints have been observed as `1`. |
-| `/StreamMgmt/Authorize/Response` | `,bii` **[unverified]** | likely echoes the same blob with status flags | Best-supported hypothesis: response mirrors the request shape. Live tests of `,bii` mirror responses (with both ints set to `1`) did not advance the handshake during the 2026-05-05 capture — Serato received the response but went silent on conn#2 within ~313 s. Possible explanations still in play: the int fields must be specific status codes (e.g. `0,0`), the blob must be transformed rather than echoed verbatim, or an additional message must follow within a tight timing window. |
+| Path                             | Type tag                                | Args                                           | Purpose                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------- | --------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/StreamMgmt/Authorize/Request`  | `,bii`                                  | `(nonce: blob[16], ?: i, ?: i)`                | Sent by Serato → remote immediately on connect #2. The blob is a **16-byte random challenge nonce** (freshly generated per connection — not a stable UUID); both ints have been observed as `1`.                                                                                                                                                             |
+| `/StreamMgmt/Authorize/Response` | `,ssb` (peerName, peerUuid, digest[16]) | `(peerName: s, peerUuid: s, digest: blob[16])` | Reply from remote → Serato. The blob **must equal `MD5(nonce ‖ secret)`** — see §3.1.1. **Verified live end-to-end (Serato 3.3.5.29, 2026-07-27):** a correct digest makes Serato proceed to pairing and begin streaming `/Status/`; a wrong one makes it go silent. The two strings are the peer's own name and UUID (contents are not part of the digest). |
 
-The Authorize/Request format string `%b%i%i` is verified by direct
-observation of the wire (and matches a corresponding constant in the
-Serato binary at offset `0x1a45126` in the arm64 slice).
+The Authorize/Request format string `%b%i%i` is verified by direct observation
+of the wire (and matches a corresponding constant in the Serato binary at offset
+`0x1a45126` in the arm64 slice).
 
-**Note on format-string evidence (2026-05-05):** A complete sweep of
-the arm64 slice's `__cstring` section shows that Serato uses adjacent
-printf-style OSC format strings for **only two** outbound messages:
-`%b%i%i` next to `/StreamMgmt/Authorize/Request` and `%s%s%i` next to
-`/StreamMgmt/Pairing/Pair`. All other outbound messages
-(`StatusChanged`, `UnPair`, `/Ping`) are built via a typed/templated
-oscpack API with no adjacent format string. The absence of a format
-string adjacent to `/StreamMgmt/Authorize/Response` is therefore
-**neutral** evidence — it does not prove receive-only, since Serato's
-typed builder API leaves no `%`-format trace either. The receive-only
-conclusion for Response is supported instead by direct observation
-(Serato sent Authorize/Request both runs, never Response).
+#### 3.1.1 The response is an MD5 challenge-response — VERIFIED LIVE
 
-**[unknown]** — exact semantics of the two int fields. Plausible
-candidates: protocol version, capability flags, peer type, error code.
+**This supersedes the earlier "response mirrors the request" hypothesis.** The
+`Authorize/Response` blob is **not** an echo of the nonce — it is a keyed digest
+that proves the remote knows a shared secret baked into the Serato binary. The
+full mechanism was recovered by static analysis and then **confirmed live** by
+hooking Serato's own digest computation and driving a real handshake to a
+flowing `/Status/` stream (Serato DJ Pro 3.3.5.29, 2026-07-27).
 
-**[unknown]** — whether the user is prompted on the Serato side to
-confirm a new pairing. No prompt was observed during the live session,
-so pairing may be implicit on first connection.
+**The rule:**
+
+```
+Authorize/Response = (peerName: string, peerUuid: string, MD5(nonce ‖ secret): blob[16])
+```
+
+where `nonce` is the 16-byte blob from `Authorize/Request` and `secret` is one
+of two 32-byte constants hardcoded in the Serato binary (either is accepted).
+
+**How Serato validates it (handler `MAIN+0xb78cfc`, comparator
+`MAIN+0xb78c4c`):**
+
+```
+(name, uuid, candidate) = extract Authorize/Response args   // MUST be ,ssb; candidate is a 16-byte blob
+nonce = authObject + 0x108                                  // the nonce Serato sent in Authorize/Request
+for secret in secretList[authObject+0x128 .. +0x130]:       // 32 bytes each
+    if candidate == MD5(nonce ‖ secret):                    // MD5: init, update(nonce,16), update(secret,32), final
+        authorized = true; break
+else:
+    // no match → Serato never advances; conn#2 stays open but silent
+```
+
+- **The response type tag MUST be `,ssb`.** The handler reads arg0 and arg1 as
+  strings (`AsString`, which throws `WrongArgumentTypeException` on any other
+  type) and arg2 as a blob. Sending a bare `,b` blob throws inside oscpack arg
+  iteration before the digest is ever checked — which is why every earlier
+  blob-only attempt stalled. The two strings are the remote's peer name and
+  UUID; their _contents_ are not fed to the digest (the library sends its
+  configured `peerName` and a random UUID).
+- **Hash = MD5** (not MD4). Verified two ways: (1) the compression function at
+  `MAIN+0xb78c4c`→`0x11af24c` uses the **MD5 T-table** as inline `movk`
+  immediates (`0xd76aa478`, `0xe8c7b756`, `0x242070db`, …) with MD5 round-1
+  shifts (7,12,17,22) and MD5's `F = (x&y)|(~x&z)`; (2) `MD5(nonce ‖ secretA)`
+  reproduces Serato's captured digest byte-for-byte. _(An earlier draft called
+  this MD4 — wrong: MD4 and MD5 share the same IV, and the T-table lives in
+  `movk` immediates, not as searchable `__const` data, so a data-only search
+  missed it.)_
+- **Two 32-byte secrets** are hardcoded constants in `__const` (arm64 offsets
+  `0x1a2d410` and `0x1a2d430`, duplicated at `0x859edf8`/`0x859ee18`) next to
+  the `RemotePolicySelector` / `AccessPolicySelector` /
+  `25CIOSRemotesViewController` symbols. The handler tries **each in turn**; a
+  remote only needs one:
+
+  ```
+  secret A: d25db261 a4411bc1 f3788f57 723b8977 c541a4b6 19b94a9a 8b45c46f 8511c2f8
+  secret B: 5e0ac1b1 20684ff3 b35c4532 b86bda9a a4e0cd4b 59094305 b7245679 24aad7c5
+  ```
+
+- **Nonce = the Authorize/Request blob**, regenerated per connection — confirmed
+  live: the value at `authObject+0x108` fed to MD5 equals the blob Serato just
+  sent, and the digest must be recomputed on every connect (it cannot be
+  cached).
+
+**[unknown]** — exact semantics of the two int fields in the _request_ (`,bii`,
+both `1`). Plausible: protocol version, capability flags, peer type. They are
+not consumed by the digest.
+
+**[resolved]** — no Serato-side user prompt gates a new pairing; authorization
+is automatic once the digest is correct (observed live).
 
 ### 3.2 Pairing
 
-| Path | Type tag | Args | Purpose |
-|---|---|---|---|
-| `/StreamMgmt/Pairing/Pair` | `,ssi` | `(peerName: s, peerUUID: s, isActive: i)` | Initiates a pairing session. The format string `%s%s%i` is hardcoded in the Serato binary at offset `0x1a45146`. |
-| `/StreamMgmt/Pairing/StatusChanged` | `,s` **[unverified]** | `(state: s)` where state ∈ `"Paired"`, `"PairedNotActive"` | Notifies the peer of pairing-state transitions. The two enum strings `Paired` and `PairedNotActive` are present in the binary at `0x1a450b0` and `0x1a450b7` respectively; no other StatusChanged values were found. |
-| `/StreamMgmt/Pairing/UnPair` | argless **[unverified]** | — | Tears down the pairing cleanly. No format string follows the path in the binary, suggesting it carries no args. |
+| Path                                | Type tag                 | Args                                                       | Purpose                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------------------- | ------------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/StreamMgmt/Pairing/Pair`          | `,ssi`                   | `(peerName: s, peerUUID: s, isActive: i)`                  | Bidirectional. **Verified live:** right after a successful Authorize, Serato **sends** its own Pair to the remote — e.g. `("SDJ @ <host>", "Serato DJ", 0)` (isActive=0). The remote replies with its **own** Pair marked active — `(peerName, peerUuid, 1)` — and this `isActive=1` is what opens the `/Status/` stream. The format string `%s%s%i` is hardcoded at offset `0x1a45146`. |
+| `/StreamMgmt/Pairing/StatusChanged` | `,s`                     | `(state: s)` where state ∈ `"Paired"`, `"PairedNotActive"` | Pairing-state notification. Enum strings present at `0x1a450b0`/`0x1a450b7`. **Not required from the remote** — replying to Serato's Pair with an active Pair (above) is sufficient to start the stream; sending `StatusChanged("Paired")` instead did not.                                                                                                                              |
+| `/StreamMgmt/Pairing/UnPair`        | argless **[unverified]** | —                                                          | Tears down the pairing cleanly. No format string follows the path in the binary, suggesting it carries no args.                                                                                                                                                                                                                                                                          |
 
-**[unknown]** — direction of `Pair` (whether the remote initiates pairing
-or Serato sends `Pair` first after Authorize/Response). The boost binding
-`RemoteManagement::method(path, bool, string&, string)` matches a
-4-argument handler — likely the **send** side of Pair (`isActive`,
-`peerName`, `peerUUID`). The remote-side state machine for Pair has not
-yet been verified end-to-end against a successful pairing.
+**Verified pairing flow (2026-07-27):**
+
+```
+remote                                   Serato
+  │  ── Authorize/Response (,ssb) ──────▶ │  digest OK
+  │  ◀── Pairing/Pair ("SDJ @ host",      │  Serato identifies itself
+  │       "Serato DJ", isActive=0) ────── │
+  │  ── Pairing/Pair (peerName,           │  activate
+  │       peerUuid, isActive=1) ────────▶ │
+  │  ── Register/Status/<topic> (×N) ────▶ │  subscribe
+  │  ◀── #bundle{ /Status/... } ───────── │  stream begins (see §4)
+  │  ◀── #bundle{ /Status/... } ───────── │
+```
+
+**[unknown]** — direction of `Pair` (whether the remote initiates pairing or
+Serato sends `Pair` first after Authorize/Response). The boost binding
+`RemoteManagement::method(path, bool, string&, string)` matches a 4-argument
+handler — likely the **send** side of Pair (`isActive`, `peerName`, `peerUUID`).
+The remote-side state machine for Pair has not yet been verified end-to-end
+against a successful pairing.
 
 **[unknown]** — whether pairing is one-shot per session or persistent across
 restarts; whether multiple remotes can be paired simultaneously.
 
 ### 3.3 Subscription
 
-After pairing succeeds, the remote subscribes to the topics it cares about
-by sending one `/Register/Status/<topic>` message per topic. The desktop
-then begins emitting `/Status/<topic>` messages whenever the underlying
-state changes.
+After pairing succeeds, the remote subscribes to the topics it cares about by
+sending one `/Register/Status/<topic>` message (remote → Serato) per topic. The
+desktop then begins emitting `/Status/<topic>` messages whenever the underlying
+state changes. **Verified live** — subscribing to all topics yields a full
+stream.
 
-**[unverified]** — it is also possible that subscription is implicit (i.e.
-the desktop sends all topics regardless), and `/Register/Status/<topic>`
-serves as an opt-in filter. Verify by capturing a session that omits some
-`/Register/...` paths.
+**[unverified]** — whether subscription is _mandatory_ or just a filter: it is
+possible the desktop would emit all topics regardless and `/Register/...` only
+narrows the set. Not yet tested by omitting some `/Register/...` paths (the
+library subscribes to all it needs).
 
 ### 3.4 Heartbeat
 
@@ -252,48 +361,59 @@ Serato → remote   /Ping
 ...
 ```
 
-`/Ping` is **bidirectional and argless** in both directions. Either side
-can send it; the receiving side replies with the same message. Verified
-across 30+ exchanges spanning ~5 minutes.
+`/Ping` is **bidirectional and argless** in both directions. Either side can
+send it; the receiving side replies with the same message. Verified across 30+
+exchanges spanning ~5 minutes.
 
-**[unknown]** — the dead-peer timeout (how long without a reply before
-Serato closes the connection). Captures so far show only successful
-exchanges within ~1 ms latency.
+**[unknown]** — the dead-peer timeout (how long without a reply before Serato
+closes the connection). Captures so far show only successful exchanges within ~1
+ms latency.
 
 ---
 
 ## 4. Status messages
 
-These are the events the desktop pushes to the remote during a paired
-session. The remote opts into the topics it wants via the matching
+These are the events the desktop pushes to the remote during a paired session.
+The remote opts into the topics it wants via the matching
 `/Register/Status/<topic>` paths.
+
+**Framing: `/Status/` updates arrive inside OSC bundles.** Verified live
+(2026-07-27): Serato does **not** send status messages as bare packets — it
+wraps them in **OSC bundles** (`#bundle\0` + 8-byte time-tag + a sequence of
+4-byte-size-prefixed elements), one bundle per frame, each still followed by the
+16-byte sentinel. A reader must expand bundles into their contained messages
+(`serato-connect`'s `FrameReader` does this via `decodeOscPacket`, and its
+`Authorize/Response` / `Pair` messages are the bare-packet form). Serato also
+sends **argless** OSC messages during pairing (an address with an empty or
+absent type-tag section — valid OSC 1.0), so a decoder must treat a missing tag
+string as "zero args" rather than rejecting the frame.
 
 ### 4.1 Track / song
 
-| OSC path | Type tag | Args | Notes |
-|---|---|---|---|
-| `/Status/Deck/Song/Title` | `is` | `(deckIndex, title)` | UTF-8 track title |
-| `/Status/Deck/Song/Artist` | `is` **[unverified]** | `(deckIndex, artist)` | UTF-8 artist string |
-| `/Status/Deck/Song/Filepath` | `is` | `(deckIndex, path)` | Absolute filesystem path on the desktop machine |
-| `/Status/Deck/Song/Valid` | `if` **[unverified]** | `(deckIndex, valid)` | Likely 1.0 / 0.0 boolean indicating whether the deck is currently loaded with a track |
+| OSC path                     | Type tag | Args                  | Notes                                                                         |
+| ---------------------------- | -------- | --------------------- | ----------------------------------------------------------------------------- |
+| `/Status/Deck/Song/Title`    | `is`     | `(deckIndex, title)`  | UTF-8 track title. **Verified live** (`,is`, deckIndex 0..3).                 |
+| `/Status/Deck/Song/Artist`   | `is`     | `(deckIndex, artist)` | UTF-8 artist string. **Verified live** (`,is`).                               |
+| `/Status/Deck/Song/Filepath` | `is`     | `(deckIndex, path)`   | Absolute filesystem path on the desktop machine. **Verified live** (`,is`).   |
+| `/Status/Deck/Song/Valid`    | `if`     | `(deckIndex, valid)`  | 1.0 / 0.0 boolean — whether the deck is loaded with a track. **[unverified]** |
 
-`deckIndex` is **0-based, range 0..3** — verified by static analysis of
-the arm64 slice (binary contains `Deck 0..3 change to INT mode` strings,
-no `Deck 4`). All four topics have matching `/Register/Status/...`
-companions.
+`deckIndex` is **0-based, range 0..3** — **confirmed live** (status messages
+arrive with `i:0`, `i:1`, `i:2`, `i:3`; static analysis also shows
+`Deck 0..3 change to INT mode` strings, no `Deck 4`). All four topics have
+matching `/Register/Status/...` companions.
 
 ### 4.2 Playhead
 
-| OSC path | Type tag | Args | Notes |
-|---|---|---|---|
-| `/Status/Deck/Playhead` | `ifff` | `(deckIndex, ?, ?, ?)` | Live playhead position update — the most frequent message during playback |
+| OSC path                | Type tag | Args                   | Notes                                                                     |
+| ----------------------- | -------- | ---------------------- | ------------------------------------------------------------------------- |
+| `/Status/Deck/Playhead` | `ifff`   | `(deckIndex, ?, ?, ?)` | Live playhead position update — the most frequent message during playback |
 
-**[unknown]** — the meaning of the three floats. Plausible candidates,
-in order of likelihood:
+**[unknown]** — the meaning of the three floats. Plausible candidates, in order
+of likelihood:
 
 1. `(positionSeconds, lengthSeconds, bpm)`
-2. `(positionSeconds, lengthSeconds, playRate)` — where `playRate` is 1.0
-   at unity, varies with pitch fader
+2. `(positionSeconds, lengthSeconds, playRate)` — where `playRate` is 1.0 at
+   unity, varies with pitch fader
 3. `(positionBeats, beatPhase, bpm)` — beat-aligned alternative
 
 To be disambiguated by inspecting argument values during a session where
@@ -302,25 +422,25 @@ track, scrub to a known position, change pitch).
 
 ### 4.3 Loop state
 
-| OSC path | Type tag | Args | Notes |
-|---|---|---|---|
-| `/Status/Deck/Loop/AutoLoopOn` | `if` | `(deckIndex, on)` | 1.0 / 0.0 boolean |
-| `/Status/Deck/Loop/BeatLength` | `if` | `(deckIndex, beats)` | Active loop length in beats (e.g. 0.25, 0.5, 1, 2, 4, 8…) |
-| `/Status/Deck/Loop/LoopRollOn` | `if` | `(deckIndex, on)` | 1.0 / 0.0 boolean |
+| OSC path                       | Type tag | Args                 | Notes                                                     |
+| ------------------------------ | -------- | -------------------- | --------------------------------------------------------- |
+| `/Status/Deck/Loop/AutoLoopOn` | `if`     | `(deckIndex, on)`    | 1.0 / 0.0 boolean                                         |
+| `/Status/Deck/Loop/BeatLength` | `if`     | `(deckIndex, beats)` | Active loop length in beats (e.g. 0.25, 0.5, 1, 2, 4, 8…) |
+| `/Status/Deck/Loop/LoopRollOn` | `if`     | `(deckIndex, on)`    | 1.0 / 0.0 boolean                                         |
 
 ### 4.4 Mixer
 
-| OSC path | Type tag | Args | Notes |
-|---|---|---|---|
-| `/Status/Video/Deck/Mixer/Upfader` | `if` | `(deckIndex, position)` | Per-deck channel fader position. Range **[unverified]** — likely 0.0–1.0. The `Video/` namespace prefix appears to be vestigial — values represent the audio channel fader. |
-| `/Status/Video/Mixer/Crossfader` | `f` | `(position,)` | Crossfader position. Range **[unverified]** — likely either -1.0…+1.0 (centered) or 0.0…1.0 (left-to-right). |
+| OSC path                           | Type tag | Args                    | Notes                                                                                                                                                                            |
+| ---------------------------------- | -------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/Status/Video/Deck/Mixer/Upfader` | `if`     | `(deckIndex, position)` | Per-deck channel fader position. **Range 0.0–1.0** — observed live (e.g. `0.933`, `1.0`). The `Video/` namespace prefix is vestigial — values represent the audio channel fader. |
+| `/Status/Video/Mixer/Crossfader`   | `f`      | `(position,)`           | Crossfader position, `,f` single float. **Range appears 0.0–1.0** (left→right) — observed values like `0.776` live; not swept to the hard extremes yet.                          |
 
 ---
 
 ## 5. Known and unknown OSC paths
 
-For completeness, this is the full set of OSC address patterns currently
-known to be part of the protocol.
+For completeness, this is the full set of OSC address patterns currently known
+to be part of the protocol.
 
 ### 5.1 Stream management (handshake)
 
@@ -338,16 +458,15 @@ known to be part of the protocol.
 ```
 
 > **Note**: an earlier draft of this spec listed a `/authorise` (British
-> spelling) path as a mystery. That was a false alarm — the binary
-> string is actually `/authorize` (American), located at `0x101a4c0e1`
-> next to `https://secure.soundcloud.com` and `/oauth/token`. It is a
-> SoundCloud OAuth2 endpoint, completely unrelated to the Serato Remote
-> protocol.
+> spelling) path as a mystery. That was a false alarm — the binary string is
+> actually `/authorize` (American), located at `0x101a4c0e1` next to
+> `https://secure.soundcloud.com` and `/oauth/token`. It is a SoundCloud OAuth2
+> endpoint, completely unrelated to the Serato Remote protocol.
 
 ### 5.1.1 Two parallel topic schemes
 
-Serato DJ Pro internally has an **ACI** (action-channel) message system,
-exposed on the network under three additional namespaces:
+Serato DJ Pro internally has an **ACI** (action-channel) message system, exposed
+on the network under three additional namespaces:
 
 ```
 /Control/ACI/<id>            ← inbound controls (remote drives the DJ app)
@@ -355,20 +474,18 @@ exposed on the network under three additional namespaces:
 /Status/ACI/<id>             ← ACI status push by message id
 ```
 
-These are **[unverified]** in terms of how they relate to the
-`/Status/Deck/...` and `/Status/Video/...` topics documented below.
-Two plausible models:
+These are **[unverified]** in terms of how they relate to the `/Status/Deck/...`
+and `/Status/Video/...` topics documented below. Two plausible models:
 
-1. **Capability negotiation** — Serato uses `/Status/Deck/...` for legacy
-   peers (the original Serato Remote app, SoundSwitch) and `/Status/ACI/...`
-   for newer/native peers. The choice is made during the
-   Authorize/Pair exchange.
-2. **Layered emit** — Serato emits both schemes in parallel; consumers can
-   pick whichever they prefer.
+1. **Capability negotiation** — Serato uses `/Status/Deck/...` for legacy peers
+   (the original Serato Remote app, SoundSwitch) and `/Status/ACI/...` for
+   newer/native peers. The choice is made during the Authorize/Pair exchange.
+2. **Layered emit** — Serato emits both schemes in parallel; consumers can pick
+   whichever they prefer.
 
-Until a live capture confirms which messages flow on a real session, this
-spec documents only the `/Status/Deck/...` and `/Status/Video/...` paths,
-because they have known argument schemas (the ACI ids do not).
+Until a live capture confirms which messages flow on a real session, this spec
+documents only the `/Status/Deck/...` and `/Status/Video/...` paths, because
+they have known argument schemas (the ACI ids do not).
 
 ### 5.2 Subscription registrations
 
@@ -412,49 +529,47 @@ because they have known argument schemas (the ACI ids do not).
 /Status/Video/Mixer/Crossfader
 ```
 
-This catalog is **verified complete** against the arm64 binary
-(2026-05-05) — all 16 topic suffixes appear verbatim in the
-`__cstring` section, prefixed at runtime with either `/Register/` or
-`/`. Additional topics may exist within the dynamic ACI namespace
-(`/Status/ACI/<id>`); see §5.1.1.
+This catalog is **verified complete** against the arm64 binary (2026-05-05) —
+all 16 topic suffixes appear verbatim in the `__cstring` section, prefixed at
+runtime with either `/Register/` or `/`. Additional topics may exist within the
+dynamic ACI namespace (`/Status/ACI/<id>`); see §5.1.1.
 
 ---
 
 ## 6. Decks
 
-The protocol supports up to **4 decks**, addressed by integer index
-**0..3** (0-based — verified 2026-05-05 via static analysis of the
-Serato binary).
+The protocol supports up to **4 decks**, addressed by integer index **0..3**
+(0-based — verified 2026-05-05 via static analysis of the Serato binary).
 
 Higher-level state derivable from the message stream:
 
-| Property | Source message | Notes |
-|---|---|---|
-| Loaded track title | `/Status/Deck/Song/Title` | last-write-wins per deck |
-| Loaded track artist | `/Status/Deck/Song/Artist` | |
-| Loaded track file path | `/Status/Deck/Song/Filepath` | use to look up GEOB metadata, crate membership, etc. |
-| Track loaded? | `/Status/Deck/Song/Valid` | [unverified] |
-| Live position | `/Status/Deck/Playhead` | high-frequency update |
-| Track length | `/Status/Deck/Playhead` (one of the floats) | [unverified] |
-| BPM (current/effective) | `/Status/Deck/Playhead` (one of the floats) | [unverified] |
-| Channel fader | `/Status/Video/Deck/Mixer/Upfader` | |
-| Loop active? | `/Status/Deck/Loop/AutoLoopOn` | |
-| Loop length | `/Status/Deck/Loop/BeatLength` | in beats |
-| Loop roll active? | `/Status/Deck/Loop/LoopRollOn` | |
+| Property                | Source message                              | Notes                                                |
+| ----------------------- | ------------------------------------------- | ---------------------------------------------------- |
+| Loaded track title      | `/Status/Deck/Song/Title`                   | last-write-wins per deck                             |
+| Loaded track artist     | `/Status/Deck/Song/Artist`                  |                                                      |
+| Loaded track file path  | `/Status/Deck/Song/Filepath`                | use to look up GEOB metadata, crate membership, etc. |
+| Track loaded?           | `/Status/Deck/Song/Valid`                   | [unverified]                                         |
+| Live position           | `/Status/Deck/Playhead`                     | high-frequency update                                |
+| Track length            | `/Status/Deck/Playhead` (one of the floats) | [unverified]                                         |
+| BPM (current/effective) | `/Status/Deck/Playhead` (one of the floats) | [unverified]                                         |
+| Channel fader           | `/Status/Video/Deck/Mixer/Upfader`          |                                                      |
+| Loop active?            | `/Status/Deck/Loop/AutoLoopOn`              |                                                      |
+| Loop length             | `/Status/Deck/Loop/BeatLength`              | in beats                                             |
+| Loop roll active?       | `/Status/Deck/Loop/LoopRollOn`              |                                                      |
 
 Mixer-wide:
 
-| Property | Source message | Notes |
-|---|---|---|
-| Crossfader position | `/Status/Video/Mixer/Crossfader` | |
+| Property            | Source message                   | Notes |
+| ------------------- | -------------------------------- | ----- |
+| Crossfader position | `/Status/Video/Mixer/Crossfader` |       |
 
 ---
 
 ## 7. Things this protocol does **not** expose
 
-Based on the available message set, the following data — present in
-Serato's file-based outputs (history files, database, GEOB tags) — does
-not appear to flow over the Remote protocol:
+Based on the available message set, the following data — present in Serato's
+file-based outputs (history files, database, GEOB tags) — does not appear to
+flow over the Remote protocol:
 
 - Cue points, hot cues, saved loops (read from GEOB tags in the audio file)
 - Beatgrid markers (read from GEOB / streaming XML)
@@ -463,8 +578,8 @@ not appear to flow over the Remote protocol:
 - Historical play log (read from `_Serato_/History/Sessions/`)
 - Per-track key, energy, custom color (read from GEOB / database)
 
-A complete realtime+library client therefore combines the protocol stream
-with the existing file-based readers in `serato-connect`.
+A complete realtime+library client therefore combines the protocol stream with
+the existing file-based readers in `serato-connect`.
 
 ---
 
@@ -479,22 +594,29 @@ implementation acts as the **server**:
      with an empty TXT record. Use an instance name of the form
      "<peer name> @ <hostname>".
 2. start TCP listener on that port. Accept multiple connections from the
-   same peer — Serato opens two parallel streams.
-3. when Serato connects (per stream):
-     a. on incoming /StreamMgmt/Authorize/Request, reply with
-        /StreamMgmt/Authorize/Response.
-     b. on incoming /StreamMgmt/Pairing/Pair, reply with
-        /StreamMgmt/Pairing/StatusChanged (state = paired).
-     c. on incoming /Register/Status/<topic>, record the subscription.
-        [unverified — registration may flow remote → Serato instead;
-         confirm with a live session.]
-     d. enter receive loop:
-          accumulate bytes from socket
-          locate the 16-byte sentinel
-            (4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70)
-          everything before the sentinel is one bare OSC packet —
-            parse it (address, type-tag, args) and dispatch on path
-          discard the sentinel; resume accumulating
-     e. respond to /Ping promptly; track liveness.
-4. on Serato disconnect, clean up subscriptions.
+   same peer — Serato opens two parallel streams (heartbeat + control).
+3. receive loop (per stream):
+     accumulate bytes from the socket.
+     scan for the 16-byte sentinel
+       (4c aa c2 ae 35 b1 c4 76 db 5a 64 44 03 bd 41 70).
+     everything before it is one OSC packet: if it starts with "#bundle",
+       expand the bundle into its element messages; otherwise decode the
+       single message (treat a missing type-tag as zero args).
+     discard the sentinel; dispatch each message on its address; repeat.
+4. dispatch:
+     a. /StreamMgmt/Authorize/Request (nonce, ...):
+          digest = MD5(nonce ‖ secret)          // 16-byte blob
+          send /StreamMgmt/Authorize/Response ,ssb
+               (peerName, peerUuid, digest).
+     b. /StreamMgmt/Pairing/Pair (Serato's own, isActive=0):
+          send /StreamMgmt/Pairing/Pair ,ssi
+               (peerName, peerUuid, isActive=1)  // the 1 opens the stream,
+          then send one /Register/Status/<topic> per topic you want.
+     c. /Status/<topic>: update your model / emit events.
+     d. /Ping: reply /Ping promptly; track liveness.
+5. on Serato disconnect, clean up.
 ```
+
+> A complete, working implementation of exactly this flow lives in `src/remote/`
+> (`SeratoRemoteClient` / `RemoteServer` / `RemoteSession`, with framing +
+> bundle decoding in `framing.ts` / `osc.ts`).
