@@ -16,7 +16,7 @@
  * type-tag + typed args), then consume the sentinel.
  */
 
-import { decodeOsc, encodeOsc, type OscMessage } from './osc.js';
+import { decodeOscPacket, encodeOsc, type OscMessage } from './osc.js';
 
 /**
  * 16-byte sentinel that follows every OSC packet on the Serato Remote wire.
@@ -31,87 +31,10 @@ export function frameOsc(msg: OscMessage): Buffer {
   return Buffer.concat([encodeOsc(msg), FRAME_SENTINEL]);
 }
 
-/** Round `n` up to the next multiple of 4. */
-function pad4(n: number): number {
-  return (n + 3) & ~3;
-}
-
-/**
- * Locate the next null byte at offset `start` and return the index just
- * after the padded string (4-byte alignment, including the null).
- */
-function nextOscStringEnd(buf: Buffer, start: number): number | null {
-  let i = start;
-  while (i < buf.length && buf[i] !== 0) i++;
-  if (i >= buf.length) return null;
-  const consumed = i - start + 1;
-  return start + pad4(consumed);
-}
-
-/**
- * Compute the total byte length of one bare OSC packet starting at offset
- * `start`. Returns null if the buffer is too short to fully describe a
- * packet (caller should wait for more bytes). Throws on a malformed type-tag
- * or unknown arg type.
- */
-function oscPacketLength(buf: Buffer, start: number): number | null {
-  if (start >= buf.length) return null;
-  const afterAddr = nextOscStringEnd(buf, start);
-  if (afterAddr === null) return null;
-  const afterTag = nextOscStringEnd(buf, afterAddr);
-  if (afterTag === null) return null;
-
-  // The type-tag string starts with ',' and lists each arg's type code.
-  let tagEnd = afterAddr;
-  while (tagEnd < buf.length && buf[tagEnd] !== 0) tagEnd++;
-  const tagString = buf.toString('utf8', afterAddr, tagEnd);
-  if (!tagString.startsWith(',')) {
-    throw new Error(`OSC type-tag missing leading comma: "${tagString}"`);
-  }
-
-  let cursor = afterTag;
-  for (const tag of tagString.slice(1)) {
-    switch (tag) {
-      case 'i':
-      case 'f':
-        cursor += 4;
-        break;
-      case 'h':
-      case 'd':
-      case 't':
-        cursor += 8;
-        break;
-      case 's':
-      case 'S': {
-        const next = nextOscStringEnd(buf, cursor);
-        if (next === null) return null;
-        cursor = next;
-        break;
-      }
-      case 'b': {
-        if (cursor + 4 > buf.length) return null;
-        const blobLen = buf.readUInt32BE(cursor);
-        cursor += 4 + pad4(blobLen);
-        break;
-      }
-      case 'T':
-      case 'F':
-      case 'N':
-      case 'I':
-        // typed but zero-byte
-        break;
-      default:
-        throw new Error(`Unsupported OSC type tag '${tag}' in framing scan`);
-    }
-    if (cursor > buf.length) return null;
-  }
-  return cursor - start;
-}
-
 /**
  * Stateful framer that consumes incremental TCP chunks and yields complete
- * OSC messages. Uses bare-OSC framing: each frame is one OSC packet
- * followed by the 16-byte FRAME_SENTINEL.
+ * OSC messages. Frames are sentinel-delimited: each frame is one OSC packet
+ * (a plain message or a `#bundle`) followed by the 16-byte FRAME_SENTINEL.
  */
 export class FrameReader {
   private buffer: Buffer = Buffer.alloc(0);
@@ -127,31 +50,30 @@ export class FrameReader {
     this.buffer = this.buffer.length === 0 ? chunk : Buffer.concat([this.buffer, chunk]);
     const messages: OscMessage[] = [];
 
+    // Frames are delimited by the 16-byte sentinel (Serato uses
+    // CocoaAsyncSocket's `readDataToData:`). The packet before each sentinel
+    // is one OSC packet — a plain message OR an OSC bundle (`#bundle`), which
+    // Serato uses for `/Status/...` updates. Bundle length is not
+    // self-describing at the top level, so we split on the sentinel and let
+    // {@link decodeOscPacket} flatten bundles into their contained messages.
     while (this.buffer.length > 0) {
-      const oscLen = oscPacketLength(this.buffer, 0);
-      if (oscLen === null) break;
-      if (oscLen > this.maxFrameBytes) {
-        throw new Error(`OSC packet length ${oscLen} exceeds max ${this.maxFrameBytes}`);
-      }
-      const totalNeeded = oscLen + FRAME_SENTINEL.length;
-      if (this.buffer.length < totalNeeded) break;
-
-      // Verify the sentinel is where we expect.
-      const sentinelStart = oscLen;
-      let sentinelOk = true;
-      for (let i = 0; i < FRAME_SENTINEL.length; i++) {
-        if (this.buffer[sentinelStart + i] !== FRAME_SENTINEL[i]) {
-          sentinelOk = false;
-          break;
+      const sentinelStart = this.buffer.indexOf(FRAME_SENTINEL);
+      if (sentinelStart === -1) {
+        // No complete frame yet. Guard against unbounded buffering.
+        if (this.buffer.length > this.maxFrameBytes) {
+          throw new Error(`OSC frame exceeds max ${this.maxFrameBytes} bytes without a sentinel`);
         }
+        break;
       }
-      if (!sentinelOk) {
-        throw new Error('OSC frame sentinel mismatch — protocol drift detected');
+      if (sentinelStart > this.maxFrameBytes) {
+        throw new Error(`OSC packet length ${sentinelStart} exceeds max ${this.maxFrameBytes}`);
       }
 
-      const payload = this.buffer.subarray(0, oscLen);
-      messages.push(decodeOsc(payload));
-      this.buffer = this.buffer.subarray(totalNeeded);
+      const payload = this.buffer.subarray(0, sentinelStart);
+      if (payload.length > 0) {
+        messages.push(...decodeOscPacket(payload));
+      }
+      this.buffer = this.buffer.subarray(sentinelStart + FRAME_SENTINEL.length);
     }
 
     return messages;

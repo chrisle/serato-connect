@@ -98,8 +98,19 @@ export function encodeOsc(msg: OscMessage): Buffer {
 /** Decode a single OSC message from a Buffer. Throws on malformed input. */
 export function decodeOsc(buf: Buffer): OscMessage {
   const { value: address, next: afterAddr } = decodeOscString(buf, 0);
-  const { value: tagString, next: afterTags } = decodeOscString(buf, afterAddr);
 
+  // OSC 1.0 permits omitting the type-tag string entirely, meaning zero
+  // arguments. Serato DJ Pro sends such argless messages during pairing
+  // (e.g. its Pairing acknowledgements), so treat a missing or empty tag
+  // section as "no args" rather than rejecting the frame. Only a present
+  // tag string that fails to start with ',' is malformed.
+  if (afterAddr >= buf.length) {
+    return { address, args: [] };
+  }
+  const { value: tagString, next: afterTags } = decodeOscString(buf, afterAddr);
+  if (tagString === '') {
+    return { address, args: [] };
+  }
   if (!tagString.startsWith(',')) {
     throw new Error(`OSC type-tag string missing leading comma: "${tagString}"`);
   }
@@ -144,6 +155,38 @@ export function decodeOsc(buf: Buffer): OscMessage {
   }
 
   return { address, args };
+}
+
+/** The OSC bundle marker: the ASCII string `#bundle` followed by a null. */
+const BUNDLE_MARKER = '#bundle';
+
+/**
+ * Decode a single OSC packet, which is either a plain message or a bundle.
+ *
+ * Serato DJ Pro delivers its `/Status/...` updates as OSC bundles
+ * (`#bundle` + 8-byte time-tag + a sequence of 4-byte-size-prefixed
+ * elements, each itself a packet). This flattens a bundle — including
+ * nested bundles — into the list of contained messages, in order. A plain
+ * message decodes to a single-element array.
+ */
+export function decodeOscPacket(buf: Buffer): OscMessage[] {
+  if (buf.length >= 8 && buf.toString('ascii', 0, 7) === BUNDLE_MARKER) {
+    const messages: OscMessage[] = [];
+    // Skip "#bundle\0" (8 bytes) + the OSC time-tag (8 bytes).
+    let cursor = 16;
+    while (cursor + 4 <= buf.length) {
+      const size = buf.readUInt32BE(cursor);
+      cursor += 4;
+      if (size === 0) continue;
+      if (cursor + size > buf.length) {
+        throw new Error('OSC bundle element size exceeds packet');
+      }
+      messages.push(...decodeOscPacket(buf.subarray(cursor, cursor + size)));
+      cursor += size;
+    }
+    return messages;
+  }
+  return [decodeOsc(buf)];
 }
 
 /** Build an OSC message with the given address and typed args. */

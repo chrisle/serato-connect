@@ -12,12 +12,25 @@
  */
 
 import EventEmitter from 'node:events';
+import { createHash, randomUUID } from 'node:crypto';
 import { createServer, type Server, type Socket } from 'node:net';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import type { Logger } from '../types/logger.js';
 import { noopLogger } from '../types/logger.js';
 import { FrameReader, frameOsc } from './framing.js';
 import { type OscMessage, osc, arg } from './osc.js';
+
+/**
+ * Shared secret Serato DJ Pro uses to authenticate Remote peers. The
+ * `/StreamMgmt/Authorize/Response` must carry `MD5(nonce ‖ secret)` where
+ * `nonce` is the 16-byte blob from `/StreamMgmt/Authorize/Request`. Two such
+ * secrets are hardcoded in the Serato binary (either is accepted); this is
+ * one of them. See ../../docs/protocol.md §3.1.1.
+ */
+const SERATO_REMOTE_SECRET = Buffer.from(
+  'd25db261a4411bc1f3788f57723b8977c541a4b619b94a9a8b45c46f8511c2f8',
+  'hex',
+);
 
 /**
  * Reasonably high default for the unverified frame max — large enough for
@@ -35,6 +48,10 @@ export interface RemoteSessionOptions {
   socket: Socket;
   /** OSC paths to subscribe to once paired. */
   subscribeTopics: readonly string[];
+  /** Human-readable peer name advertised to Serato during the handshake. */
+  peerName: string;
+  /** Stable UUID identifying this peer to Serato. */
+  peerUuid: string;
   /** Maximum allowed frame size. */
   maxFrameBytes?: number;
   /** Pluggable logger. */
@@ -63,15 +80,20 @@ export class RemoteSession extends (EventEmitter as new () => SessionEmitter) {
   private readonly socket: Socket;
   private readonly reader: FrameReader;
   private readonly subscribeTopics: readonly string[];
+  private readonly peerName: string;
+  private readonly peerUuid: string;
   private readonly logger: Logger;
   private readonly peer: RemoteSessionPeer;
   private isPaired = false;
+  private isSubscribed = false;
   private isClosed = false;
 
   constructor(opts: RemoteSessionOptions) {
     super();
     this.socket = opts.socket;
     this.subscribeTopics = opts.subscribeTopics;
+    this.peerName = opts.peerName;
+    this.peerUuid = opts.peerUuid;
     this.logger = opts.logger ?? noopLogger;
     this.reader = new FrameReader(opts.maxFrameBytes ?? DEFAULT_MAX_FRAME_BYTES);
     this.peer = {
@@ -139,19 +161,42 @@ export class RemoteSession extends (EventEmitter as new () => SessionEmitter) {
     const { address } = msg;
 
     if (address === '/StreamMgmt/Authorize/Request') {
-      this.send(osc('/StreamMgmt/Authorize/Response'));
+      // Serato sends a 16-byte challenge nonce. Prove we know the shared
+      // secret by replying with (peerName, peerUuid, MD5(nonce ‖ secret)) —
+      // type tag `,ssb`. A wrong/absent digest makes Serato go silent.
+      const nonce = msg.args.find((a) => a.type === 'b')?.value;
+      if (!nonce) {
+        this.logger.warn('remote session: Authorize/Request had no nonce blob');
+        return;
+      }
+      const digest = createHash('md5').update(nonce).update(SERATO_REMOTE_SECRET).digest();
+      this.send(
+        osc(
+          '/StreamMgmt/Authorize/Response',
+          arg.s(this.peerName),
+          arg.s(this.peerUuid),
+          arg.b(digest),
+        ),
+      );
       return;
     }
     if (address === '/StreamMgmt/Pairing/Pair') {
-      // Reply with paired-state notification, then opt into the topics we
-      // care about. Argument shape for StatusChanged is unverified — sending
-      // a single int 1 (paired) is the most plausible encoding.
-      this.send(osc('/StreamMgmt/Pairing/StatusChanged', arg.i(1)));
-      for (const topic of this.subscribeTopics) {
-        this.send(osc(topic));
+      // After authorizing, Serato sends its own Pair (with isActive=0). Reply
+      // with our Pair marked active (isActive=1) to open the status stream,
+      // then subscribe to the topics we care about.
+      this.send(
+        osc('/StreamMgmt/Pairing/Pair', arg.s(this.peerName), arg.s(this.peerUuid), arg.i(1)),
+      );
+      this.subscribe();
+      if (!this.isPaired) {
+        this.isPaired = true;
+        this.emit('paired', this.peer);
       }
-      this.isPaired = true;
-      this.emit('paired', this.peer);
+      return;
+    }
+    if (address === '/StreamMgmt/Pairing/StatusChanged') {
+      // A pairing-state notification from Serato — ensure we've subscribed.
+      this.subscribe();
       return;
     }
     if (address === '/StreamMgmt/Pairing/UnPair') {
@@ -180,6 +225,15 @@ export class RemoteSession extends (EventEmitter as new () => SessionEmitter) {
     this.logger.debug('remote session: ignoring unknown OSC path %s', address);
   }
 
+  /** Send one `/Register/Status/<topic>` per subscribed topic, once. */
+  private subscribe(): void {
+    if (this.isSubscribed) return;
+    this.isSubscribed = true;
+    for (const topic of this.subscribeTopics) {
+      this.send(osc(topic));
+    }
+  }
+
   private handleClose(): void {
     if (this.isClosed) return;
     this.isClosed = true;
@@ -195,6 +249,10 @@ export interface RemoteServerOptions {
   port: number;
   host: string;
   subscribeTopics: readonly string[];
+  /** Human-readable peer name advertised to Serato during the handshake. */
+  peerName: string;
+  /** Stable UUID identifying this peer to Serato (generated if omitted). */
+  peerUuid?: string;
   maxFrameBytes?: number;
   logger?: Logger;
 }
@@ -215,6 +273,7 @@ type ServerEmitter = StrictEventEmitter<EventEmitter, RemoteServerEvents>;
 export class RemoteServer extends (EventEmitter as new () => ServerEmitter) {
   private readonly tcp: Server;
   private readonly options: RemoteServerOptions;
+  private readonly peerUuid: string;
   private readonly logger: Logger;
   private readonly sessions = new Set<RemoteSession>();
   private boundPort: number | null = null;
@@ -222,6 +281,9 @@ export class RemoteServer extends (EventEmitter as new () => ServerEmitter) {
   constructor(opts: RemoteServerOptions) {
     super();
     this.options = opts;
+    // A stable UUID for the lifetime of the server, shared across the two
+    // parallel connections Serato opens.
+    this.peerUuid = opts.peerUuid ?? randomUUID();
     this.logger = opts.logger ?? noopLogger;
     this.tcp = createServer((socket) => this.handleConnection(socket));
     this.tcp.on('error', (err) => this.emit('error', err));
@@ -281,6 +343,8 @@ export class RemoteServer extends (EventEmitter as new () => ServerEmitter) {
     const session = new RemoteSession({
       socket,
       subscribeTopics: this.options.subscribeTopics,
+      peerName: this.options.peerName,
+      peerUuid: this.peerUuid,
       maxFrameBytes: this.options.maxFrameBytes,
       logger: this.logger,
     });

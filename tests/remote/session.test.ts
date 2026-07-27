@@ -7,6 +7,7 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { createServer, connect, type Socket } from 'node:net';
+import { createHash } from 'node:crypto';
 import { once } from 'node:events';
 import { RemoteSession } from '../../src/remote/server.js';
 import { FrameReader, frameOsc } from '../../src/remote/framing.js';
@@ -70,38 +71,62 @@ describe('RemoteSession handshake', () => {
     }
   });
 
-  it('responds to Authorize/Request with Authorize/Response', async () => {
+  it('answers Authorize/Request with MD5(nonce ‖ secret) as ,ssb', async () => {
     const lb = await loopback();
     cleanup = lb.cleanup;
     new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
 
-    lb.clientSocket.write(frameOsc(osc('/StreamMgmt/Authorize/Request')));
+    // The 16-byte challenge nonce Serato sends in Authorize/Request.
+    const nonce = Buffer.from('3f47500e7d40141e774a9b908ef6bec0', 'hex');
+    // One of the two secrets hardcoded in the Serato binary.
+    const secret = Buffer.from(
+      'd25db261a4411bc1f3788f57723b8977c541a4b619b94a9a8b45c46f8511c2f8',
+      'hex',
+    );
+    const expected = createHash('md5').update(nonce).update(secret).digest();
+
+    lb.clientSocket.write(
+      frameOsc(osc('/StreamMgmt/Authorize/Request', arg.b(nonce), arg.i(1), arg.i(1))),
+    );
     const replies = await collect(lb.clientSocket, 50);
-    expect(replies.map((m) => m.address)).toContain('/StreamMgmt/Authorize/Response');
+    const resp = replies.find((m) => m.address === '/StreamMgmt/Authorize/Response');
+    expect(resp).toBeDefined();
+    // Shape: (peerName: s, peerUuid: s, digest: b)
+    expect(resp!.args.map((a) => a.type)).toEqual(['s', 's', 'b']);
+    const blob = resp!.args[2] as { type: 'b'; value: Buffer };
+    expect(blob.value.equals(expected)).toBe(true);
   });
 
-  it('on Pair, replies with StatusChanged and sends subscribe topics', async () => {
+  it('on Pair, replies with an active Pair and sends subscribe topics', async () => {
     const lb = await loopback();
     cleanup = lb.cleanup;
-    const topics = [
-      '/Register/Status/Deck/Playhead',
-      '/Register/Status/Deck/Song/Title',
-    ];
+    const topics = ['/Register/Status/Deck/Playhead', '/Register/Status/Deck/Song/Title'];
     const session = new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: topics,
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
 
     const pairedPromise = once(session, 'paired');
-    lb.clientSocket.write(frameOsc(osc('/StreamMgmt/Pairing/Pair')));
+    lb.clientSocket.write(
+      frameOsc(osc('/StreamMgmt/Pairing/Pair', arg.s('Serato'), arg.s('Serato DJ'), arg.i(0))),
+    );
     const replies = await collect(lb.clientSocket, 100);
     await pairedPromise;
 
+    const pairReply = replies.find((m) => m.address === '/StreamMgmt/Pairing/Pair');
+    expect(pairReply).toBeDefined();
+    // We activate the pairing with isActive=1.
+    expect(pairReply!.args.map((a) => a.type)).toEqual(['s', 's', 'i']);
+    expect((pairReply!.args[2] as { type: 'i'; value: number }).value).toBe(1);
+
     const addresses = replies.map((m) => m.address);
-    expect(addresses).toContain('/StreamMgmt/Pairing/StatusChanged');
     for (const topic of topics) {
       expect(addresses).toContain(topic);
     }
@@ -114,6 +139,8 @@ describe('RemoteSession handshake', () => {
     const session = new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
 
     const pingEvent = once(session, 'ping');
@@ -129,12 +156,12 @@ describe('RemoteSession handshake', () => {
     const session = new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
 
     const statusPromise = once(session, 'status') as Promise<[OscMessage]>;
-    lb.clientSocket.write(
-      frameOsc(osc('/Status/Deck/Song/Title', arg.i(0), arg.s('Hello')))
-    );
+    lb.clientSocket.write(frameOsc(osc('/Status/Deck/Song/Title', arg.i(0), arg.s('Hello'))));
     const [msg] = await statusPromise;
     expect(msg.address).toBe('/Status/Deck/Song/Title');
     expect(msg.args[1]).toEqual({ type: 's', value: 'Hello' });
@@ -153,11 +180,15 @@ describe('SeratoRemoteClient status dispatch', () => {
     const session = new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
 
     // Bridge session events into the client via its private dispatch.
     // The exposed `attachSession` is private; reach in via a typed cast.
-    type WithAttach = SeratoRemoteClient & { attachSession(s: RemoteSession): void };
+    type WithAttach = SeratoRemoteClient & {
+      attachSession(s: RemoteSession): void;
+    };
     (client as WithAttach).attachSession(session);
 
     const events: SeratoRemoteDeckChangePayload[] = [];
@@ -166,7 +197,9 @@ describe('SeratoRemoteClient status dispatch', () => {
     // deck index 0 → expect deckId 1
     lb.clientSocket.write(frameOsc(osc('/Status/Deck/Song/Title', arg.i(0), arg.s('T'))));
     lb.clientSocket.write(frameOsc(osc('/Status/Deck/Song/Artist', arg.i(0), arg.s('A'))));
-    lb.clientSocket.write(frameOsc(osc('/Status/Deck/Song/Filepath', arg.i(0), arg.s('/tmp/x.mp3'))));
+    lb.clientSocket.write(
+      frameOsc(osc('/Status/Deck/Song/Filepath', arg.i(0), arg.s('/tmp/x.mp3'))),
+    );
     await new Promise<void>((r) => setTimeout(r, 50));
 
     expect(events.length).toBeGreaterThanOrEqual(1);
@@ -185,15 +218,19 @@ describe('SeratoRemoteClient status dispatch', () => {
     const session = new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
-    type WithAttach = SeratoRemoteClient & { attachSession(s: RemoteSession): void };
+    type WithAttach = SeratoRemoteClient & {
+      attachSession(s: RemoteSession): void;
+    };
     (client as WithAttach).attachSession(session);
 
     const events: SeratoRemotePlayheadPayload[] = [];
     client.on('playhead', (p) => events.push(p));
 
     lb.clientSocket.write(
-      frameOsc(osc('/Status/Deck/Playhead', arg.i(0), arg.f(10), arg.f(180), arg.f(125)))
+      frameOsc(osc('/Status/Deck/Playhead', arg.i(0), arg.f(10), arg.f(180), arg.f(125))),
     );
     await new Promise<void>((r) => setTimeout(r, 50));
 
@@ -215,8 +252,12 @@ describe('SeratoRemoteClient status dispatch', () => {
     const session = new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
-    type WithAttach = SeratoRemoteClient & { attachSession(s: RemoteSession): void };
+    type WithAttach = SeratoRemoteClient & {
+      attachSession(s: RemoteSession): void;
+    };
     (client as WithAttach).attachSession(session);
 
     let cfChanges = 0;
@@ -227,9 +268,7 @@ describe('SeratoRemoteClient status dispatch', () => {
     });
 
     lb.clientSocket.write(frameOsc(osc('/Status/Video/Mixer/Crossfader', arg.f(0.25))));
-    lb.clientSocket.write(
-      frameOsc(osc('/Status/Video/Deck/Mixer/Upfader', arg.i(0), arg.f(0.8)))
-    );
+    lb.clientSocket.write(frameOsc(osc('/Status/Video/Deck/Mixer/Upfader', arg.i(0), arg.f(0.8))));
     await new Promise<void>((r) => setTimeout(r, 50));
 
     expect(cfChanges).toBe(1);
@@ -246,8 +285,12 @@ describe('SeratoRemoteClient status dispatch', () => {
     const session = new RemoteSession({
       socket: lb.serverSocket,
       subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
     });
-    type WithAttach = SeratoRemoteClient & { attachSession(s: RemoteSession): void };
+    type WithAttach = SeratoRemoteClient & {
+      attachSession(s: RemoteSession): void;
+    };
     (client as WithAttach).attachSession(session);
 
     const events: SeratoRemoteDeckChangePayload[] = [];

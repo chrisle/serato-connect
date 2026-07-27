@@ -60,12 +60,50 @@ describe('FrameReader', () => {
     expect(frame.subarray(oscBytes.length)).toEqual(FRAME_SENTINEL);
   });
 
-  it('throws if the sentinel is missing where expected', () => {
+  it('buffers bytes with no sentinel yet as an incomplete frame', () => {
+    // Framing is sentinel-delimited: without the sentinel there is no
+    // complete frame, so the reader yields nothing and keeps buffering.
     const reader = new FrameReader();
     const oscBytes = encodeOsc(osc('/Ping'));
-    const wrongTrailer = Buffer.alloc(FRAME_SENTINEL.length); // all zeros
-    const bad = Buffer.concat([oscBytes, wrongTrailer]);
-    expect(() => reader.push(bad)).toThrow(/sentinel mismatch/);
+    const noSentinelYet = Buffer.alloc(FRAME_SENTINEL.length); // all zeros
+    const partial = Buffer.concat([oscBytes, noSentinelYet]);
+    expect(reader.push(partial)).toHaveLength(0);
+    // Completing the frame with a real sentinel yields the message.
+    const out = reader.push(FRAME_SENTINEL);
+    // The zero trailer is treated as packet payload preceding the sentinel;
+    // the /Ping frame arrives once a genuine sentinel delimits it.
+    expect(out.length).toBeGreaterThanOrEqual(1);
+    expect(out[0].address).toBe('/Ping');
+  });
+
+  it('throws if an oversized frame never produces a sentinel', () => {
+    const reader = new FrameReader(64);
+    const huge = Buffer.alloc(128); // no sentinel, exceeds max
+    expect(() => reader.push(huge)).toThrow(/without a sentinel/);
+  });
+
+  it('decodes an OSC bundle frame into its contained messages', () => {
+    // Serato delivers /Status updates as #bundle packets.
+    const reader = new FrameReader();
+    const inner1 = encodeOsc(osc('/Status/Deck/Song/Title', arg.i(0), arg.s('Song A')));
+    const inner2 = encodeOsc(osc('/Status/Deck/Playhead', arg.i(0), arg.f(1), arg.f(2), arg.f(3)));
+    const sizeOf = (b: Buffer) => {
+      const s = Buffer.alloc(4);
+      s.writeUInt32BE(b.length, 0);
+      return s;
+    };
+    const bundle = Buffer.concat([
+      Buffer.from('#bundle\0', 'ascii'),
+      Buffer.from([0, 0, 0, 0, 0, 0, 0, 1]), // timetag
+      sizeOf(inner1),
+      inner1,
+      sizeOf(inner2),
+      inner2,
+    ]);
+    const out = reader.push(Buffer.concat([bundle, FRAME_SENTINEL]));
+    expect(out).toHaveLength(2);
+    expect(out[0].address).toBe('/Status/Deck/Song/Title');
+    expect(out[1].address).toBe('/Status/Deck/Playhead');
   });
 
   it('parses a captured Serato Authorize/Request blob frame', () => {

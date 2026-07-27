@@ -105,6 +105,7 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
       port: this.options.port,
       host: this.options.host,
       subscribeTopics: this.options.subscribeTopics,
+      peerName: this.options.peerName,
       maxFrameBytes: this.options.maxFrameBytes,
       logger: this.options.logger,
     });
