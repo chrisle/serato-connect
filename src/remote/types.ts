@@ -70,18 +70,23 @@ export interface SeratoRemoteTrack {
 /**
  * Live playhead state for a deck.
  *
- * The three floats from `/Status/Deck/Playhead` are exposed in raw form
- * (`raw0..raw2`) and also surfaced under best-guess names; semantic mapping
- * is unverified pending live capture.
+ * The three floats from `/Status/Deck/Playhead` are `(positionSeconds,
+ * playRate, bpm)` — verified live against Serato DJ Pro 3.3.5.29 by sweeping
+ * the pitch fader (`bpm / playRate` stays constant at the track's base BPM).
+ * They are also exposed verbatim in {@link raw}.
  */
 export interface SeratoRemotePlayhead {
-  /** First float — most likely the position in seconds. */
+  /** First float — playhead position in seconds. */
   positionSeconds?: number;
-  /** Second float — most likely the track length in seconds. */
-  lengthSeconds?: number;
-  /** Third float — most likely BPM (or play-rate, see protocol.md). */
+  /**
+   * Second float — the current play rate: `0` when stopped/paused, `1.0` at
+   * normal speed, and the pitch-fader multiplier when playing (e.g. `0.92` at
+   * −8%). A non-zero value means the deck is playing.
+   */
+  playRate?: number;
+  /** Third float — the current, pitch-adjusted BPM (`baseBpm × playRate`). */
   bpm?: number;
-  /** All three floats verbatim, in case the semantic mapping is wrong. */
+  /** All three floats verbatim: `[positionSeconds, playRate, bpm]`. */
   raw: readonly [number, number, number];
 }
 

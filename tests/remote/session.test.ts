@@ -212,7 +212,7 @@ describe('SeratoRemoteClient status dispatch', () => {
     await lb.cleanup();
   });
 
-  it('emits playhead with raw floats and best-guess names', async () => {
+  it('emits playhead with position, playRate, and bpm', async () => {
     const lb = await loopback();
     const client = new SeratoRemoteClient();
     const session = new RemoteSession({
@@ -229,19 +229,20 @@ describe('SeratoRemoteClient status dispatch', () => {
     const events: SeratoRemotePlayheadPayload[] = [];
     client.on('playhead', (p) => events.push(p));
 
+    // (positionSeconds=10s, playRate=0.92 → −8% pitch, bpm=114.08 effective)
     lb.clientSocket.write(
-      frameOsc(osc('/Status/Deck/Playhead', arg.i(0), arg.f(10), arg.f(180), arg.f(125))),
+      frameOsc(osc('/Status/Deck/Playhead', arg.i(0), arg.f(10), arg.f(0.92), arg.f(114.08))),
     );
     await new Promise<void>((r) => setTimeout(r, 50));
 
     expect(events).toHaveLength(1);
     expect(events[0].deckId).toBe(1);
     expect(events[0].playhead.raw[0]).toBeCloseTo(10, 5);
-    expect(events[0].playhead.raw[1]).toBeCloseTo(180, 5);
-    expect(events[0].playhead.raw[2]).toBeCloseTo(125, 5);
+    expect(events[0].playhead.raw[1]).toBeCloseTo(0.92, 5);
+    expect(events[0].playhead.raw[2]).toBeCloseTo(114.08, 5);
     expect(events[0].playhead.positionSeconds).toBeCloseTo(10, 5);
-    expect(events[0].playhead.lengthSeconds).toBeCloseTo(180, 5);
-    expect(events[0].playhead.bpm).toBeCloseTo(125, 5);
+    expect(events[0].playhead.playRate).toBeCloseTo(0.92, 5);
+    expect(events[0].playhead.bpm).toBeCloseTo(114.08, 5);
 
     await lb.cleanup();
   });

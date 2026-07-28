@@ -13,11 +13,7 @@
 import EventEmitter from 'node:events';
 import { type Logger, noopLogger } from '../types/logger.js';
 import { type OscMessage } from './osc.js';
-import {
-  RemoteServer,
-  type RemoteSession,
-  type RemoteSessionPeer,
-} from './server.js';
+import { RemoteServer, type RemoteSession, type RemoteSessionPeer } from './server.js';
 import { publishSeratoRemote, type MdnsPublication } from './mdns.js';
 import {
   DEFAULT_SUBSCRIPTION_TOPICS,
@@ -50,7 +46,7 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
   /** Last loop state per deck (1-based index). */
   private deckLoops: SeratoRemoteLoopState[] = Array.from(
     { length: NUM_REMOTE_DECKS + 1 },
-    () => ({})
+    () => ({}),
   );
   /** Last upfader value per deck (1-based index). */
   private mixerState: SeratoRemoteMixerState = {
@@ -223,7 +219,7 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
         if (a == null || b == null || c == null) return;
         const playhead: SeratoRemotePlayhead = {
           positionSeconds: a,
-          lengthSeconds: b,
+          playRate: b,
           bpm: c,
           raw: [a, b, c] as const,
         };
@@ -335,17 +331,12 @@ function tracksEqual(a: SeratoRemoteTrack | null, b: SeratoRemoteTrack | null): 
   if (a === b) return true;
   if (!a || !b) return false;
   return (
-    a.title === b.title &&
-    a.artist === b.artist &&
-    a.filePath === b.filePath &&
-    a.valid === b.valid
+    a.title === b.title && a.artist === b.artist && a.filePath === b.filePath && a.valid === b.valid
   );
 }
 
 function loopsEqual(a: SeratoRemoteLoopState, b: SeratoRemoteLoopState): boolean {
   return (
-    a.autoLoopOn === b.autoLoopOn &&
-    a.beatLength === b.beatLength &&
-    a.loopRollOn === b.loopRollOn
+    a.autoLoopOn === b.autoLoopOn && a.beatLength === b.beatLength && a.loopRollOn === b.loopRollOn
   );
 }
