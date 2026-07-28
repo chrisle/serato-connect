@@ -165,13 +165,15 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
   }
 
   private attachSession(session: RemoteSession): void {
-    const peer = peerInfo(session.remotePeer);
-    this.emit('peerConnected', peer);
+    this.emit('peerConnected', peerInfo(session.remotePeer));
 
-    session.on('paired', () => this.emit('paired', peer));
+    // Take the peer from each event rather than snapshotting it here: Serato's
+    // own name only becomes known when it pairs, so `paired`/`peerDisconnected`
+    // carry a richer peer than `peerConnected` did.
+    session.on('paired', (peer) => this.emit('paired', peerInfo(peer)));
     session.on('ping', () => this.emit('ping'));
+    session.on('closed', (peer) => this.emit('peerDisconnected', peerInfo(peer)));
     session.on('status', (msg) => this.handleStatus(msg));
-    session.on('closed', () => this.emit('peerDisconnected', peer));
     session.on('error', (err) => this.emit('error', err));
   }
 
@@ -292,7 +294,12 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
 }
 
 function peerInfo(p: RemoteSessionPeer): SeratoRemotePeerInfo {
-  return { remoteAddress: p.remoteAddress, remotePort: p.remotePort };
+  return {
+    remoteAddress: p.remoteAddress,
+    remotePort: p.remotePort,
+    ...(p.name ? { peerName: p.name } : {}),
+    ...(p.uuid ? { peerUuid: p.uuid } : {}),
+  };
 }
 
 function intArg(args: OscMessage['args'], i: number): number | null {

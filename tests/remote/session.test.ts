@@ -133,6 +133,31 @@ describe('RemoteSession handshake', () => {
     expect(session.paired).toBe(true);
   });
 
+  it('records the name Serato pairs with on the peer', async () => {
+    const lb = await loopback();
+    cleanup = lb.cleanup;
+    const session = new RemoteSession({
+      socket: lb.serverSocket,
+      subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
+    });
+
+    expect(session.remotePeer.name).toBeUndefined();
+
+    const pairedPromise = once(session, 'paired') as Promise<[{ name?: string; uuid?: string }]>;
+    lb.clientSocket.write(
+      frameOsc(
+        osc('/StreamMgmt/Pairing/Pair', arg.s('SDJ @ studio-mac'), arg.s('Serato DJ'), arg.i(0)),
+      ),
+    );
+    const [peer] = await pairedPromise;
+
+    expect(peer.name).toBe('SDJ @ studio-mac');
+    expect(peer.uuid).toBe('Serato DJ');
+    expect(session.remotePeer.name).toBe('SDJ @ studio-mac');
+  });
+
   it('echoes /Ping and emits a ping event', async () => {
     const lb = await loopback();
     cleanup = lb.cleanup;

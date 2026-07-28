@@ -42,6 +42,14 @@ const DEFAULT_MAX_FRAME_BYTES = 1 << 20;
 export interface RemoteSessionPeer {
   remoteAddress: string;
   remotePort: number;
+  /**
+   * Name Serato identifies itself with in its own `/StreamMgmt/Pairing/Pair`
+   * — e.g. `"SDJ @ <host>"`. Only known once that message arrives, so it is
+   * absent on the initial connection and present from `paired` onward.
+   */
+  name?: string;
+  /** Peer UUID string from the same message — observed as `"Serato DJ"`. */
+  uuid?: string;
 }
 
 export interface RemoteSessionOptions {
@@ -181,9 +189,17 @@ export class RemoteSession extends (EventEmitter as new () => SessionEmitter) {
       return;
     }
     if (address === '/StreamMgmt/Pairing/Pair') {
-      // After authorizing, Serato sends its own Pair (with isActive=0). Reply
-      // with our Pair marked active (isActive=1) to open the status stream,
-      // then subscribe to the topics we care about.
+      // After authorizing, Serato sends its own Pair (with isActive=0) —
+      // `(peerName, peerUuid, isActive)`. Its peerName ("SDJ @ <host>") is the
+      // only human-readable identity the protocol carries, so record it on the
+      // peer before the `paired` event goes out.
+      const theirName = stringArg(msg, 0);
+      const theirUuid = stringArg(msg, 1);
+      if (theirName) this.peer.name = theirName;
+      if (theirUuid) this.peer.uuid = theirUuid;
+
+      // Reply with our Pair marked active (isActive=1) to open the status
+      // stream, then subscribe to the topics we care about.
       this.send(
         osc('/StreamMgmt/Pairing/Pair', arg.s(this.peerName), arg.s(this.peerUuid), arg.i(1)),
       );
@@ -356,4 +372,11 @@ export class RemoteServer extends (EventEmitter as new () => ServerEmitter) {
 
 function toError(err: unknown): Error {
   return err instanceof Error ? err : new Error(String(err));
+}
+
+/** Read a string argument at `index`, or null if it is absent/another type. */
+function stringArg(msg: OscMessage, index: number): string | null {
+  const a = msg.args[index];
+  if (!a || a.type !== 's') return null;
+  return a.value.length > 0 ? a.value : null;
 }

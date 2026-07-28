@@ -154,6 +154,17 @@ export interface SeratoRemotePeerInfo {
   remoteAddress: string;
   /** Remote port of the connecting peer. */
   remotePort: number;
+  /**
+   * Name Serato identifies itself with during pairing — e.g. `"SDJ @ <host>"`.
+   * Undefined on `peerConnected` (it arrives with the Pair message) and set
+   * from `paired` onward.
+   *
+   * NOTE: this is the DJ *software* instance, not the DJ hardware model — the
+   * Remote protocol carries no controller/mixer name.
+   */
+  peerName?: string;
+  /** Peer UUID string Serato sends alongside its name (observed: "Serato DJ"). */
+  peerUuid?: string;
 }
 
 /** Events emitted by SeratoRemoteClient. */

@@ -57,7 +57,14 @@ const decks = Array.from({ length: NUM_REMOTE_DECKS + 1 }, () => ({
   loop: {}, // { autoLoopOn, beatLength, loopRollOn }
 }));
 let mixer = { crossfader: undefined, upfaders: [] };
-let status = { ready: false, connected: false, paired: false, instanceName: '', port: 0 };
+let status = {
+  ready: false,
+  connected: false,
+  paired: false,
+  instanceName: '',
+  peerName: '',
+  port: 0,
+};
 const eventLog = []; // rolling, most-recent-last
 
 function logEvent(line) {
@@ -122,7 +129,7 @@ function render() {
   );
 
   const conn = status.paired
-    ? c('bgGreen', ' PAIRED ')
+    ? `${c('bgGreen', ' PAIRED ')}${status.peerName ? ' ' + c('dim', status.peerName) : ''}`
     : status.connected
       ? c('yellow', 'connecting…')
       : status.ready
@@ -200,9 +207,10 @@ client.on('peerConnected', () => {
   if (!status.connected) logEvent(c('yellow', 'Serato connected'));
   status.connected = true;
 });
-client.on('paired', () => {
+client.on('paired', (peer) => {
   status.paired = true;
-  logEvent(c('green', 'paired — streaming'));
+  status.peerName = peer.peerName || '';
+  logEvent(c('green', `paired with ${peer.peerName || 'Serato'} — streaming`));
 });
 client.on('peerDisconnected', () => {
   status.connected = false;
