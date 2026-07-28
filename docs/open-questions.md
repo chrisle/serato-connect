@@ -88,14 +88,11 @@ Remaining minor items:
 
 ## Status message details
 
-- **`/Status/Deck/Playhead` three floats.** **[unverified]** Best candidates, in
-  order of likelihood:
-  1. `(positionSeconds, lengthSeconds, bpm)`
-  2. `(positionSeconds, lengthSeconds, playRate)` — where playRate ≠ 1 at
-     non-zero pitch.
-  3. `(positionBeats, beatPhase, bpm)` — beat-aligned alternative. Disambiguate
-     by loading a known-length track, scrubbing to a known position, and varying
-     the pitch fader.
+- **`/Status/Deck/Playhead` three floats.** **[resolved — verified live]** They
+  are `(positionSeconds, playRate, bpm)`: float 1 is the play rate (`0` stopped,
+  `1.0` normal, pitch multiplier when playing) and float 2 is the pitch-adjusted
+  BPM (`bpm / playRate` held constant at the base BPM across a pitch sweep).
+  There is **no** track-length field. See [`protocol.md` §4.2](./protocol.md).
 - **`/Status/Video/Mixer/Crossfader` range.** **[unverified]** Either -1.0…+1.0
   (centered) or 0.0…1.0 (left → right). Determine by capturing the value at
   hard-left, center, and hard-right positions.

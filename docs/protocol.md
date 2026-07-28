@@ -404,21 +404,25 @@ matching `/Register/Status/...` companions.
 
 ### 4.2 Playhead
 
-| OSC path                | Type tag | Args                   | Notes                                                                     |
-| ----------------------- | -------- | ---------------------- | ------------------------------------------------------------------------- |
-| `/Status/Deck/Playhead` | `ifff`   | `(deckIndex, ?, ?, ?)` | Live playhead position update — the most frequent message during playback |
+| OSC path                | Type tag | Args                                          | Notes                                                                                |
+| ----------------------- | -------- | --------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `/Status/Deck/Playhead` | `ifff`   | `(deckIndex, positionSeconds, playRate, bpm)` | Live playhead update — the most frequent message during playback. **Verified live.** |
 
-**[unknown]** — the meaning of the three floats. Plausible candidates, in order
-of likelihood:
+**The three floats are `(positionSeconds, playRate, bpm)`** — verified live
+(Serato DJ Pro 3.3.5.29) by playing a track and sweeping the pitch fader:
 
-1. `(positionSeconds, lengthSeconds, bpm)`
-2. `(positionSeconds, lengthSeconds, playRate)` — where `playRate` is 1.0 at
-   unity, varies with pitch fader
-3. `(positionBeats, beatPhase, bpm)` — beat-aligned alternative
+- **float 0 — `positionSeconds`**: playhead position in seconds. Advances at
+  `playRate × realtime`.
+- **float 1 — `playRate`**: the current play rate. `0.0` when stopped/paused,
+  `1.0` at normal speed, and the pitch-fader multiplier when playing (e.g.
+  `0.920` at −8%). A non-zero value is a reliable "deck is playing" signal.
+- **float 2 — `bpm`**: the current, **pitch-adjusted** BPM. Confirmed because
+  `bpm / playRate` stayed constant at the track's base BPM across the whole
+  pitch sweep (e.g. base `124.0`: `1.000→124.00`, `0.958→118.77`,
+  `0.920→114.08`).
 
-To be disambiguated by inspecting argument values during a session where
-position, length, and BPM are independently varied (e.g. load a known-length
-track, scrub to a known position, change pitch).
+It is **not** `(position, length, bpm)` — the middle float is play rate, not
+track length (no track-length field is exposed by this protocol at all).
 
 ### 4.3 Loop state
 
@@ -543,19 +547,19 @@ The protocol supports up to **4 decks**, addressed by integer index **0..3**
 
 Higher-level state derivable from the message stream:
 
-| Property                | Source message                              | Notes                                                |
-| ----------------------- | ------------------------------------------- | ---------------------------------------------------- |
-| Loaded track title      | `/Status/Deck/Song/Title`                   | last-write-wins per deck                             |
-| Loaded track artist     | `/Status/Deck/Song/Artist`                  |                                                      |
-| Loaded track file path  | `/Status/Deck/Song/Filepath`                | use to look up GEOB metadata, crate membership, etc. |
-| Track loaded?           | `/Status/Deck/Song/Valid`                   | [unverified]                                         |
-| Live position           | `/Status/Deck/Playhead`                     | high-frequency update                                |
-| Track length            | `/Status/Deck/Playhead` (one of the floats) | [unverified]                                         |
-| BPM (current/effective) | `/Status/Deck/Playhead` (one of the floats) | [unverified]                                         |
-| Channel fader           | `/Status/Video/Deck/Mixer/Upfader`          |                                                      |
-| Loop active?            | `/Status/Deck/Loop/AutoLoopOn`              |                                                      |
-| Loop length             | `/Status/Deck/Loop/BeatLength`              | in beats                                             |
-| Loop roll active?       | `/Status/Deck/Loop/LoopRollOn`              |                                                      |
+| Property                | Source message                     | Notes                                                |
+| ----------------------- | ---------------------------------- | ---------------------------------------------------- |
+| Loaded track title      | `/Status/Deck/Song/Title`          | last-write-wins per deck                             |
+| Loaded track artist     | `/Status/Deck/Song/Artist`         |                                                      |
+| Loaded track file path  | `/Status/Deck/Song/Filepath`       | use to look up GEOB metadata, crate membership, etc. |
+| Track loaded?           | `/Status/Deck/Song/Valid`          | `,if`, `1.0` = loaded (observed live)                |
+| Live position           | `/Status/Deck/Playhead` float 0    | position in seconds; high-frequency update           |
+| Playing? / play rate    | `/Status/Deck/Playhead` float 1    | `0` = stopped, else the pitch multiplier             |
+| BPM (current/effective) | `/Status/Deck/Playhead` float 2    | pitch-adjusted BPM                                   |
+| Channel fader           | `/Status/Video/Deck/Mixer/Upfader` |                                                      |
+| Loop active?            | `/Status/Deck/Loop/AutoLoopOn`     |                                                      |
+| Loop length             | `/Status/Deck/Loop/BeatLength`     | in beats                                             |
+| Loop roll active?       | `/Status/Deck/Loop/LoopRollOn`     |                                                      |
 
 Mixer-wide:
 
