@@ -83,6 +83,18 @@ console.log(`Advertising "${instanceName}" on port ${port}`);
 // Open Serato DJ Pro on the same network — it will auto-connect.
 ```
 
+### Live monitor demo
+
+A ready-to-run terminal dashboard is included — it shows, per deck, the loaded track and play state, live playhead, loop/loop-roll toggles, and the channel faders + crossfader:
+
+```bash
+npm run demo                     # builds, then runs examples/monitor.js
+# then launch Serato DJ Pro; it auto-connects
+node examples/monitor.js --log   # plain scrolling event log instead of the dashboard
+```
+
+> The Serato Remote protocol exposes _derived_ state (track, playhead, loop toggles, faders) — not raw hot-cue/transport button presses or EQ-knob positions, which only exist over MIDI via the desktop app's bridge.
+
 ## API
 
 ### SeratoConnect Class

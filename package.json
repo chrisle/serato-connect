@@ -36,7 +36,8 @@
     "prepublishOnly": "npm run clean && npm run build && npm test",
     "release": "node .github/release.js",
     "release:patch": "node .github/release.js --patch",
-    "release:major": "node .github/release.js --major"
+    "release:major": "node .github/release.js --major",
+    "demo": "npm run build && node examples/monitor.js"
   },
   "engines": {
     "node": ">=22.0.0"
