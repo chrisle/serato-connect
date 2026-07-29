@@ -1,5 +1,19 @@
 # Change log
 
+## v1.4.0
+
+- ci: serato-connect releases reach npm again instead of failing on every push
+- fix: show the playing track on the overlay again with Serato
+- docs: record the upfader as linear 0.0-1.0, verified live
+- docs: record the crossfader range as 0.0-1.0, verified live
+- feat: see which Serato instance you're paired with
+- docs: add sequence diagram and record verified playhead + framing details
+- feat: add a live terminal monitor demo for the Serato Remote client
+- fix: report accurate play state and live BPM from the Serato playhead
+- docs: document the verified Serato Remote handshake and status stream
+- feat: stream live Serato DJ deck, playhead, and mixer state over the network
+
+
 ## v1.3.0
 
 - chore: save Serato Remote protocol reverse-engineering work
