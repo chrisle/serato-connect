@@ -99,8 +99,10 @@ Remaining minor items:
   once consumed as -1…+1, while hard right read correctly — the signature of a
   0…1 source in a -1…+1 field. Consumers must rescale (`v * 2 - 1`); see
   `emitOscControllerState` in the desktop Serato connector.
-- **`/Status/Video/Deck/Mixer/Upfader` range.** **[unverified]** Almost
-  certainly 0.0…1.0, but unconfirmed. Are non-linear curves applied?
+- **`/Status/Video/Deck/Mixer/Upfader` range.** **[resolved — verified live]**
+  `0.0…1.0`, linear — **no** curve is applied. Confirmed on hardware. This
+  matches `ControllerState.channelFader` exactly, so unlike the crossfader it
+  needs no rescaling.
 - **`/Status/Deck/Loop/BeatLength` value when loop is off.** **[unknown]** Does
   it stay at the last value or get reset to 0?
 - **Update rate / throttling.** **[unknown]** Maximum frequency for
