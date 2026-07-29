@@ -437,7 +437,7 @@ track length (no track-length field is exposed by this protocol at all).
 | OSC path                           | Type tag | Args                    | Notes                                                                                                                                                                            |
 | ---------------------------------- | -------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/Status/Video/Deck/Mixer/Upfader` | `if`     | `(deckIndex, position)` | Per-deck channel fader position. **Range 0.0–1.0** — observed live (e.g. `0.933`, `1.0`). The `Video/` namespace prefix is vestigial — values represent the audio channel fader. |
-| `/Status/Video/Mixer/Crossfader`   | `f`      | `(position,)`           | Crossfader position, `,f` single float. **Range appears 0.0–1.0** (left→right) — observed values like `0.776` live; not swept to the hard extremes yet.                          |
+| `/Status/Video/Mixer/Crossfader`   | `f`      | `(position,)`           | Crossfader position, `,f` single float. **Range 0.0–1.0** (left→right), confirmed by sweeping to both hard stops. Not centered on 0 — consumers wanting -1…+1 must rescale.      |
 
 ---
 

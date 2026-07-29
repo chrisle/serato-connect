@@ -93,9 +93,12 @@ Remaining minor items:
   `1.0` normal, pitch multiplier when playing) and float 2 is the pitch-adjusted
   BPM (`bpm / playRate` held constant at the base BPM across a pitch sweep).
   There is **no** track-length field. See [`protocol.md` §4.2](./protocol.md).
-- **`/Status/Video/Mixer/Crossfader` range.** **[unverified]** Either -1.0…+1.0
-  (centered) or 0.0…1.0 (left → right). Determine by capturing the value at
-  hard-left, center, and hard-right positions.
+- **`/Status/Video/Mixer/Crossfader` range.** **[resolved — verified live]**
+  `0.0…1.0`, left → right, **not** centered on 0. Confirmed by sweeping a real
+  controller to both hard stops: hard left reported a value that read as centre
+  once consumed as -1…+1, while hard right read correctly — the signature of a
+  0…1 source in a -1…+1 field. Consumers must rescale (`v * 2 - 1`); see
+  `emitOscControllerState` in the desktop Serato connector.
 - **`/Status/Video/Deck/Mixer/Upfader` range.** **[unverified]** Almost
   certainly 0.0…1.0, but unconfirmed. Are non-linear curves applied?
 - **`/Status/Deck/Loop/BeatLength` value when loop is off.** **[unknown]** Does
