@@ -1,5 +1,10 @@
 # Change log
 
+## v1.4.1
+
+- fix: a new track no longer shows up under the previous track's artist
+
+
 ## v1.4.0
 
 - ci: serato-connect releases reach npm again instead of failing on every push
