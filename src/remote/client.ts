@@ -32,6 +32,24 @@ const DEFAULT_PEER_NAME = 'serato-connect';
 const DEFAULT_HOST = '0.0.0.0';
 
 /**
+ * How long a deck's track fields have to stay still before the track counts as
+ * settled and `deckChange` fires.
+ *
+ * Serato does not send a track as one record: `/Status/Deck/Song/Title`,
+ * `/Status/Deck/Song/Artist` and `/Status/Deck/Song/Filepath` arrive as
+ * separate messages, back to back. Emitting on each one publishes a half-formed
+ * track that pairs the NEW title with the PREVIOUS track's artist, and
+ * downstream that impostor races the real track all the way to the overlay —
+ * which is how an overlay ends up showing the right title beside the artist of
+ * the track before last (NP3-378).
+ *
+ * The fields of one load land within microseconds of each other, so this only
+ * has to outlast the gap between messages in a burst, not any human-visible
+ * delay.
+ */
+const TRACK_SETTLE_MS = 50;
+
+/**
  * High-level client. Publishes the Bonjour service, accepts inbound TCP
  * streams from Serato DJ Pro, drives the handshake, and surfaces
  * track/playhead/mixer/loop state as typed events.
@@ -43,6 +61,16 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
 
   /** Per-deck loaded track. Index = deck number (1-based). Index 0 unused. */
   private deckTracks: (SeratoRemoteTrack | null)[] = new Array(NUM_REMOTE_DECKS + 1).fill(null);
+  /**
+   * Per-deck track as of the last emitted `deckChange`. `deckTracks` moves with
+   * every field message; this only moves when an event goes out, so it is what
+   * `previousTrack` and the change comparison have to be measured against.
+   */
+  private emittedTracks: (SeratoRemoteTrack | null)[] = new Array(NUM_REMOTE_DECKS + 1).fill(null);
+  /** Per-deck timer collecting a burst of field updates. Index = deckId. */
+  private settleTimers: (ReturnType<typeof setTimeout> | null)[] = new Array(
+    NUM_REMOTE_DECKS + 1,
+  ).fill(null);
   /** Last loop state per deck (1-based index). */
   private deckLoops: SeratoRemoteLoopState[] = Array.from(
     { length: NUM_REMOTE_DECKS + 1 },
@@ -156,7 +184,11 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
       }
     }
 
+    for (let deckId = 0; deckId <= NUM_REMOTE_DECKS; deckId++) {
+      this.clearSettleTimer(deckId);
+    }
     this.deckTracks = new Array(NUM_REMOTE_DECKS + 1).fill(null);
+    this.emittedTracks = new Array(NUM_REMOTE_DECKS + 1).fill(null);
     this.deckLoops = Array.from({ length: NUM_REMOTE_DECKS + 1 }, () => ({}));
     this.mixerState = {
       crossfader: undefined,
@@ -274,14 +306,37 @@ export class SeratoRemoteClient extends (EventEmitter as new () => SeratoRemoteE
     const next: SeratoRemoteTrack = { ...(previous ?? {}), ...patch };
     if (tracksEqual(previous, next)) return;
     this.deckTracks[deckId] = next;
-    this.emit('deckChange', { deckId, track: next, previousTrack: previous });
+    // Restart the window on every field, so the whole burst for one load lands
+    // in a single event no matter how many messages it takes.
+    this.clearSettleTimer(deckId);
+    this.settleTimers[deckId] = setTimeout(() => {
+      this.settleTimers[deckId] = null;
+      this.flushDeckChange(deckId);
+    }, TRACK_SETTLE_MS);
   }
 
   private ejectDeck(deckId: number): void {
-    const previous = this.deckTracks[deckId];
-    if (previous === null) return;
+    // An eject is definitive — nothing more is coming for this track, so it
+    // does not wait out the settle window.
+    this.clearSettleTimer(deckId);
+    if (this.deckTracks[deckId] === null && this.emittedTracks[deckId] === null) return;
     this.deckTracks[deckId] = null;
-    this.emit('deckChange', { deckId, track: null, previousTrack: previous });
+    this.flushDeckChange(deckId);
+  }
+
+  /** Emit the deck's settled track, if it differs from what was last emitted. */
+  private flushDeckChange(deckId: number): void {
+    const track = this.deckTracks[deckId];
+    const previousTrack = this.emittedTracks[deckId];
+    if (tracksEqual(previousTrack, track)) return;
+    this.emittedTracks[deckId] = track;
+    this.emit('deckChange', { deckId, track, previousTrack });
+  }
+
+  private clearSettleTimer(deckId: number): void {
+    const pending = this.settleTimers[deckId];
+    if (pending) clearTimeout(pending);
+    this.settleTimers[deckId] = null;
   }
 
   private updateLoop(deckId: number, patch: Partial<SeratoRemoteLoopState>): void {

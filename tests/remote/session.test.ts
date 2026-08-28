@@ -225,14 +225,62 @@ describe('SeratoRemoteClient status dispatch', () => {
     lb.clientSocket.write(
       frameOsc(osc('/Status/Deck/Song/Filepath', arg.i(0), arg.s('/tmp/x.mp3'))),
     );
-    await new Promise<void>((r) => setTimeout(r, 50));
+    await new Promise<void>((r) => setTimeout(r, 200));
 
-    expect(events.length).toBeGreaterThanOrEqual(1);
+    // One load, one event: the fields of a burst are collected, never emitted
+    // piecemeal.
+    expect(events).toHaveLength(1);
     const last = events[events.length - 1];
     expect(last.deckId).toBe(1);
     expect(last.track?.title).toBe('T');
     expect(last.track?.artist).toBe('A');
     expect(last.track?.filePath).toBe('/tmp/x.mp3');
+
+    await lb.cleanup();
+  });
+
+  it("never pairs a new title with the previous track's artist (NP3-378)", async () => {
+    const lb = await loopback();
+    const client = new SeratoRemoteClient();
+    const session = new RemoteSession({
+      socket: lb.serverSocket,
+      subscribeTopics: [],
+      peerName: 'Test Peer',
+      peerUuid: 'test-uuid',
+    });
+    type WithAttach = SeratoRemoteClient & {
+      attachSession(s: RemoteSession): void;
+    };
+    (client as WithAttach).attachSession(session);
+
+    const events: SeratoRemoteDeckChangePayload[] = [];
+    client.on('deckChange', (p) => events.push(p));
+
+    // First load settles.
+    lb.clientSocket.write(frameOsc(osc('/Status/Deck/Song/Title', arg.i(0), arg.s('First Title'))));
+    lb.clientSocket.write(
+      frameOsc(osc('/Status/Deck/Song/Artist', arg.i(0), arg.s('First Artist'))),
+    );
+    await new Promise<void>((r) => setTimeout(r, 200));
+
+    // Second load onto the same deck. Serato sends the title before the artist,
+    // so emitting per message would publish "First Artist - Second Title" — the
+    // impostor that reached the overlay in NP3-378.
+    lb.clientSocket.write(
+      frameOsc(osc('/Status/Deck/Song/Title', arg.i(0), arg.s('Second Title'))),
+    );
+    lb.clientSocket.write(
+      frameOsc(osc('/Status/Deck/Song/Artist', arg.i(0), arg.s('Second Artist'))),
+    );
+    await new Promise<void>((r) => setTimeout(r, 200));
+
+    expect(events).toHaveLength(2);
+    expect(events[0].track).toMatchObject({ title: 'First Title', artist: 'First Artist' });
+    expect(events[1].track).toMatchObject({ title: 'Second Title', artist: 'Second Artist' });
+    expect(events[1].previousTrack).toMatchObject({
+      title: 'First Title',
+      artist: 'First Artist',
+    });
 
     await lb.cleanup();
   });
@@ -323,9 +371,9 @@ describe('SeratoRemoteClient status dispatch', () => {
     client.on('deckChange', (p) => events.push(p));
 
     lb.clientSocket.write(frameOsc(osc('/Status/Deck/Song/Title', arg.i(0), arg.s('T'))));
-    await new Promise<void>((r) => setTimeout(r, 25));
+    await new Promise<void>((r) => setTimeout(r, 200));
     lb.clientSocket.write(frameOsc(osc('/Status/Deck/Song/Valid', arg.i(0), arg.f(0))));
-    await new Promise<void>((r) => setTimeout(r, 25));
+    await new Promise<void>((r) => setTimeout(r, 50));
 
     const ejected = events.find((e) => e.track === null);
     expect(ejected).toBeDefined();
