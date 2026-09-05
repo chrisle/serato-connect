@@ -1,5 +1,11 @@
 # Change log
 
+## v1.4.2
+
+- fix: patch file-type ReDoS vuln by upgrading music-metadata to v11
+- fix: handle Serato tracks without deck info
+
+
 ## v1.4.1
 
 - fix: a new track no longer shows up under the previous track's artist
