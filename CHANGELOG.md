@@ -1,5 +1,10 @@
 # Change log
 
+## v1.4.3
+
+- fix: the SQLite driver keeps building under npm 12, which blocks install scripts by default
+
+
 ## v1.4.2
 
 - fix: patch file-type ReDoS vuln by upgrading music-metadata to v11
