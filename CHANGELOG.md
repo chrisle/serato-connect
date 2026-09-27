@@ -1,5 +1,10 @@
 # Change log
 
+## v1.4.6
+
+- ci: retire release.js so fixes pushed to main reach npm (NP3-461)
+
+
 ## v1.4.5
 
 - ci: CI comes from the shared connector-ci workflows
