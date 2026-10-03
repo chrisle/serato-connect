@@ -62,14 +62,28 @@ export async function publishSeratoRemote(
   // Lazy-load bonjour-service so the rest of the package doesn't pull it in
   // when the consumer only uses the file-based readers.
   const mod = await import('bonjour-service');
-  const Bonjour = (mod as unknown as { Bonjour: new () => BonjourLike }).Bonjour
-    ?? (mod as unknown as { default: new () => BonjourLike }).default;
+  const Bonjour = (
+    mod as unknown as {
+      Bonjour: new (options: Record<string, never>, errorCallback: (error: Error) => void) => BonjourLike;
+    }
+  ).Bonjour ??
+    (
+      mod as unknown as {
+        default: new (options: Record<string, never>, errorCallback: (error: Error) => void) => BonjourLike;
+      }
+    ).default;
 
   if (typeof Bonjour !== 'function') {
     throw new Error('bonjour-service is not installed; install it to use the Serato Remote protocol');
   }
 
-  const bonjour = new Bonjour();
+  // bonjour-service's default error callback rethrows socket errors. In a
+  // desktop app that turns a transient mDNS send failure (for example when a
+  // network interface disappears) into an uncaught exception. Keep the
+  // responder alive and surface the failure through the supplied logger.
+  const bonjour = new Bonjour({}, (err: Error) => {
+    logger.warn('mdns: responder error', err);
+  });
   const service: BonjourServiceLike = bonjour.publish({
     name: instanceName,
     type: SERATO_REMOTE_SERVICE_TYPE,
@@ -115,6 +129,7 @@ interface BonjourServiceLike {
 }
 
 interface BonjourLike {
+  new (options: Record<string, never>, errorCallback: (error: Error) => void): BonjourLike;
   publish(opts: {
     name: string;
     type: string;
